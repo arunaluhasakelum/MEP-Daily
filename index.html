@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEP Daily — Field Notes</title>
+<meta name="theme-color" content="#0A2647">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MEP Daily">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#0A2647;
+  --bg-deep:#071A33;
+  --paper:#0F3460;
+  --paper-2:#123a6e;
+  --line:#2C5F8A;
+  --ink:#DCEEFB;
+  --ink-dim:#8FB4D4;
+  --ink-faint:#5D85AA;
+  --accent:#F2994A;
+  --accent-2:#E8B14E;
+  --good:#6FCF97;
+  --bad:#EB6B6B;
+  --mono:'JetBrains Mono', monospace;
+  --sans:'Inter', sans-serif;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    repeating-linear-gradient(0deg, rgba(220,238,251,0.035) 0px, rgba(220,238,251,0.035) 1px, transparent 1px, transparent 28px),
+    repeating-linear-gradient(90deg, rgba(220,238,251,0.035) 0px, rgba(220,238,251,0.035) 1px, transparent 1px, transparent 28px),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+  font-family:var(--sans);
+  color:var(--ink);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+}
+#app{
+  width:100%;
+  max-width:480px;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  padding-bottom:78px;
+}
+
+/* ---------- Title block header ---------- */
+.titleblock{
+  margin:14px 12px 10px;
+  border:1.5px solid var(--line);
+  background:rgba(15,52,96,0.55);
+  border-radius:4px;
+  overflow:hidden;
+}
+.tb-row{display:flex; border-bottom:1px solid var(--line);}
+.tb-row:last-child{border-bottom:none;}
+.tb-cell{flex:1; padding:8px 10px; border-right:1px solid var(--line);}
+.tb-cell:last-child{border-right:none;}
+.tb-label{font-family:var(--mono); font-size:9px; letter-spacing:0.08em; color:var(--ink-faint); text-transform:uppercase; margin-bottom:2px;}
+.tb-value{font-family:var(--mono); font-size:15px; font-weight:700; color:var(--ink);}
+.tb-value.accent{color:var(--accent);}
+.tb-title{padding:10px 12px; display:flex; align-items:center; justify-content:space-between;}
+.tb-title h1{font-family:var(--mono); font-size:13px; letter-spacing:0.12em; margin:0; color:var(--ink); text-transform:uppercase;}
+.tb-title .sub{font-family:var(--mono); font-size:9px; color:var(--ink-faint); letter-spacing:0.06em;}
+
+/* corner crosshair marks */
+.crosshair{position:absolute; width:10px; height:10px; pointer-events:none;}
+.crosshair::before,.crosshair::after{content:'';position:absolute;background:var(--line);}
+.crosshair::before{width:100%;height:1px;top:50%;}
+.crosshair::after{width:1px;height:100%;left:50%;}
+.ch-tl{top:6px;left:6px;} .ch-tr{top:6px;right:6px;} .ch-bl{bottom:6px;left:6px;} .ch-br{bottom:6px;right:6px;}
+
+/* ---------- Nav tabs ---------- */
+.tabs{
+  position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:480px;
+  display:flex; background:var(--bg-deep);
+  border-top:1.5px solid var(--line);
+  z-index:50;
+}
+.tab{
+  flex:1; padding:12px 4px 10px; text-align:center; background:none; border:none;
+  color:var(--ink-faint); font-family:var(--mono); font-size:10px; letter-spacing:0.06em;
+  text-transform:uppercase; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;
+}
+.tab.active{color:var(--accent);}
+.tab-icon{width:18px; height:18px;}
+
+/* ---------- Content area ---------- */
+.view{padding:6px 12px 20px; flex:1;}
+.section-label{font-family:var(--mono); font-size:10px; letter-spacing:0.1em; color:var(--ink-faint); text-transform:uppercase; margin:18px 0 8px 2px; overflow:hidden; display:flex; align-items:center; justify-content:space-between;}
+
+/* ---------- Cards ---------- */
+.card{
+  position:relative;
+  background:linear-gradient(160deg, var(--paper) 0%, var(--paper-2) 100%);
+  border:1.5px solid var(--line);
+  border-radius:6px;
+  padding:18px;
+  margin-bottom:12px;
+}
+.card .cat-tag{
+  display:inline-block; font-family:var(--mono); font-size:9px; letter-spacing:0.1em;
+  color:var(--accent); border:1px solid var(--accent); border-radius:20px; padding:2px 8px; margin-bottom:10px; text-transform:uppercase;
+}
+.card .type-tag{
+  display:inline-block; font-family:var(--mono); font-size:9px; letter-spacing:0.1em;
+  color:var(--ink-faint); margin-bottom:10px; margin-left:6px; text-transform:uppercase;
+}
+.card h2{font-family:var(--sans); font-size:16px; font-weight:600; margin:0 0 12px; line-height:1.4; color:var(--ink);}
+.card p.body{font-size:14px; line-height:1.6; color:var(--ink-dim); margin:0 0 14px;}
+
+.opt{
+  display:block; width:100%; text-align:left; background:rgba(220,238,251,0.04);
+  border:1.3px solid var(--line); color:var(--ink); font-family:var(--sans); font-size:14px;
+  padding:11px 13px; border-radius:5px; margin-bottom:8px; cursor:pointer; transition:all .15s;
+}
+.opt:active{transform:scale(0.98);}
+.opt.correct{border-color:var(--good); background:rgba(111,207,151,0.14); color:var(--good);}
+.opt.wrong{border-color:var(--bad); background:rgba(235,107,107,0.14); color:var(--bad);}
+.opt.dim{opacity:0.4;}
+.explain{
+  margin-top:12px; padding:12px; background:rgba(0,0,0,0.18); border-left:3px solid var(--accent);
+  border-radius:3px; font-size:13px; line-height:1.55; color:var(--ink-dim);
+}
+.explain b{color:var(--accent-2);}
+
+.figure{margin:4px 0 14px; border:1.3px dashed var(--line); border-radius:5px; overflow:hidden; background:rgba(0,0,0,0.15); position:relative;}
+.figure img{width:100%; display:block; max-height:220px; object-fit:cover;}
+.fig-loading{padding:22px 10px; text-align:center; font-family:var(--mono); font-size:10px; color:var(--ink-faint); letter-spacing:0.05em; text-transform:uppercase;}
+.fig-cap{font-family:var(--mono); font-size:9px; letter-spacing:0.06em; color:var(--ink-faint); padding:6px 10px; text-transform:uppercase; border-top:1px solid var(--line); background:rgba(0,0,0,0.2);}
+.dd-badge{display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--good); margin-right:6px; box-shadow:0 0 6px var(--good);}
+.card .type-tag.code-tag{color:var(--accent-2); border:1px solid var(--accent-2); border-radius:20px; padding:2px 8px;}
+.fig-retry{cursor:pointer; color:var(--accent); border-top:1px dashed var(--line);}
+.fig-retry:active{opacity:0.6;}
+.refresh-btn{background:none; border:1px solid var(--line); color:var(--ink-dim); font-family:var(--mono); font-size:9px; letter-spacing:0.05em; text-transform:uppercase; padding:3px 9px; border-radius:20px; cursor:pointer; flex-shrink:0;}
+.refresh-btn:active{transform:scale(0.95); opacity:0.7;}
+
+/* flashcard */
+.flashwrap{perspective:1000px; margin-bottom:12px;}
+.flashcard{
+  position:relative; min-height:170px; border-radius:6px; cursor:pointer;
+  transform-style:preserve-3d; transition:transform .5s;
+}
+.flashcard.flip{transform:rotateY(180deg);}
+.fcface{
+  position:absolute; inset:0; backface-visibility:hidden; border-radius:6px;
+  border:1.5px solid var(--line); padding:18px; display:flex; flex-direction:column; justify-content:center;
+  background:linear-gradient(160deg, var(--paper) 0%, var(--paper-2) 100%);
+}
+.fcface.back{transform:rotateY(180deg); background:linear-gradient(160deg, #123a6e 0%, #0d2b52 100%); border-color:var(--accent);}
+.fcface .hint{font-family:var(--mono); font-size:9px; letter-spacing:0.1em; color:var(--ink-faint); position:absolute; bottom:10px; right:14px; text-transform:uppercase;}
+.fcface .txt{font-size:16px; line-height:1.5; color:var(--ink); font-weight:600;}
+.fcface.back .txt{font-size:14px; font-weight:400; color:var(--ink-dim);}
+
+.rate-row{display:flex; gap:8px; margin-top:4px;}
+.rate-btn{flex:1; padding:10px; border-radius:5px; border:1.3px solid var(--line); background:rgba(220,238,251,0.04); color:var(--ink-dim); font-family:var(--mono); font-size:11px; letter-spacing:0.04em; text-transform:uppercase; cursor:pointer;}
+.rate-btn.hard{border-color:var(--bad); color:var(--bad);}
+.rate-btn.easy{border-color:var(--good); color:var(--good);}
+
+.btn{
+  width:100%; padding:13px; border-radius:5px; border:none; background:var(--accent); color:#1a1005;
+  font-family:var(--mono); font-weight:700; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; margin-top:6px;
+}
+.btn:active{transform:scale(0.98);}
+.btn.ghost{background:transparent; border:1.3px solid var(--line); color:var(--ink-dim);}
+
+.progressbar{height:5px; background:rgba(220,238,251,0.08); border-radius:3px; overflow:hidden; margin:12px 2px 4px;}
+.progressbar-fill{height:100%; background:var(--accent); transition:width .3s;}
+.progress-txt{font-family:var(--mono); font-size:10px; color:var(--ink-faint); text-align:right; letter-spacing:0.05em;}
+
+/* stats */
+.statgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px;}
+.statbox{border:1.5px solid var(--line); border-radius:6px; padding:14px; background:rgba(15,52,96,0.4);}
+.statbox .n{font-family:var(--mono); font-size:26px; font-weight:800; color:var(--accent);}
+.statbox .l{font-family:var(--mono); font-size:9px; letter-spacing:0.08em; color:var(--ink-faint); text-transform:uppercase; margin-top:2px;}
+
+.catbar-row{margin-bottom:12px;}
+.catbar-head{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; margin-bottom:5px;}
+.catbar-head span:first-child{color:var(--ink); letter-spacing:0.04em;}
+.catbar-head span:last-child{color:var(--ink-faint);}
+.catbar-track{height:8px; background:rgba(220,238,251,0.08); border-radius:4px; overflow:hidden;}
+.catbar-fill{height:100%; background:linear-gradient(90deg, var(--accent-2), var(--accent));}
+
+.calendar{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:6px;}
+.cal-cell{aspect-ratio:1; border-radius:3px; background:rgba(220,238,251,0.06); border:1px solid var(--line);}
+.cal-cell.done{background:var(--accent); border-color:var(--accent);}
+.cal-cell.today{outline:1.5px solid var(--ink);}
+
+/* explore */
+.catgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+
+/* ---------- Launcher (app switcher) screen ---------- */
+.launcher-head{
+  position:relative; margin:20px 14px 16px; padding:22px 16px;
+  border:1.5px solid var(--line); border-radius:6px; background:rgba(15,52,96,0.5); text-align:center;
+}
+.launcher-head h1{font-family:var(--mono); font-size:20px; letter-spacing:0.12em; color:var(--ink); margin:0 0 6px;}
+.launcher-head .sub{font-family:var(--mono); font-size:9px; letter-spacing:0.1em; color:var(--ink-faint); text-transform:uppercase;}
+.disc-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 12px 24px;}
+.disc-card{
+  border:1.5px solid var(--line); border-radius:6px; padding:20px 12px; text-align:left; cursor:pointer;
+  background:linear-gradient(160deg, var(--paper) 0%, var(--paper-2) 100%); color:var(--ink); font-family:var(--sans);
+}
+.disc-card:active{transform:scale(0.97);}
+.disc-ic{font-size:26px; margin-bottom:10px; display:block;}
+.disc-nm{font-weight:700; font-size:13px; line-height:1.3;}
+.disc-sub{font-family:var(--mono); font-size:9px; color:var(--ink-faint); margin-top:6px; text-transform:uppercase; letter-spacing:0.05em;}
+.back-chip{
+  background:none; border:1px solid var(--line); color:var(--ink-dim); border-radius:50%; width:22px; height:22px;
+  font-size:12px; line-height:1; cursor:pointer; vertical-align:middle; margin-right:4px; padding:0;
+}
+.back-chip:active{transform:scale(0.9);}
+.catcard{
+  border:1.5px solid var(--line); border-radius:6px; padding:16px 12px; text-align:left; cursor:pointer;
+  background:rgba(15,52,96,0.4); color:var(--ink); font-family:var(--sans);
+}
+.catcard .ic{font-size:22px; margin-bottom:8px; display:block;}
+.catcard .nm{font-weight:700; font-size:13px;}
+.catcard .cnt{font-family:var(--mono); font-size:10px; color:var(--ink-faint); margin-top:2px;}
+
+.backbtn{background:none; border:none; color:var(--ink-dim); font-family:var(--mono); font-size:11px; letter-spacing:0.05em; padding:6px 0 14px; cursor:pointer; display:flex; align-items:center; gap:6px;}
+
+.empty-state{text-align:center; padding:40px 20px; color:var(--ink-faint); font-family:var(--mono); font-size:12px; line-height:1.7;}
+
+.done-banner{text-align:center; padding:30px 16px;}
+.done-banner .big{font-size:40px; margin-bottom:10px;}
+.done-banner h3{font-family:var(--mono); font-size:15px; letter-spacing:0.06em; color:var(--accent); text-transform:uppercase; margin:0 0 8px;}
+.done-banner p{color:var(--ink-dim); font-size:13px; line-height:1.6;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ================= DISCIPLINE BANK ================= */
+/* DISCIPLINES is injected per-build: { key: { name, short, icon, prefix, ddIntro, ddEnum, cats:{...}, content:[...], imgQuery:{...} } } */
+const DISCIPLINES = {
+  fire: {
+    name: "Fire Protection & Detection Daily",
+    short: "Fire",
+    icon: "\ud83d\udd25",
+    prefix: "fireapp",
+    ddIntro: "You are a fire protection engineering trainer writing for an experienced MEP engineer who designs fire detection, suppression, and life-safety systems for resort/hospitality buildings.",
+    ddEnum: "DETECT|SUPPRESS|PUMPS|STANDPIPE|GASEOUS|CODES",
+    cats: {
+    DETECT:{name:'Detection & Alarm', icon:'🔔'},
+    SUPPRESS:{name:'Sprinklers & Suppression', icon:'💦'},
+    PUMPS:{name:'Fire Pumps & Water Supply', icon:'🚰'},
+    STANDPIPE:{name:'Standpipe, Hydrants & Hose', icon:'🧯'},
+    GASEOUS:{name:'Gaseous & Special Suppression', icon:'🌫'},
+    CODES:{name:'Codes & Standards', icon:'📖'},
+  },
+    imgQuery: {
+  1:'smoke detector',2:'heat detector fire',3:'fire alarm control panel',4:'fire alarm system',5:'beam smoke detector',6:'addressable fire alarm',
+  7:'fire sprinkler system',8:'sprinkler installation',9:'dry pipe sprinkler valve',10:'deluge valve',11:'sprinkler head glass bulb',12:'fire sprinkler pipe',
+  13:'pre-action sprinkler valve',14:'fire pump',15:'fire pump room',16:'jockey pump',17:'diesel fire pump',18:'fire pump relief valve',
+  19:'standpipe fire protection',20:'fire hydrant',21:'standpipe hose cabinet',22:'OS&Y valve',23:'post indicator valve',
+  24:'clean agent fire suppression',25:'FM-200 fire suppression',26:'fire detection cross zone',27:'fire escape stairs',
+  28:'means of egress',29:'fire department connection',30:'alarm check valve',31:'sprinkler test valve',
+  },
+    content: [
+{id:1,cat:'DETECT',type:'mcq',q:'Ionization vs photoelectric smoke detectors — which generally responds faster to a smoldering (slow, smoky) fire?',opts:['Ionization','Photoelectric','Both respond identically','Neither detects smoldering fires'],a:1,e:'Photoelectric detectors sense light scatter from larger smoke particles typical of smoldering fires, giving faster response. Ionization detectors tend to respond faster to fast-flaming fires with smaller combustion particles.'},
+{id:2,cat:'DETECT',type:'flash',f:'What does a rate-of-rise heat detector actually trigger on?',b:'It triggers when temperature rises faster than a set rate per minute (rather than a fixed absolute temperature), catching a developing fire earlier than a fixed-temperature detector alone — often combined with a fixed-temperature backup element.'},
+{id:3,cat:'DETECT',type:'mcq',q:'What is the core function of a Fire Alarm Control Panel (FACP)?',opts:['It only sounds an audible alarm, nothing else','It monitors detection/alarm devices, processes signals, and initiates outputs (alarms, notification, and fire system interfaces) per programmed logic',"It replaces the need for sprinklers",'It only logs events for insurance purposes'],a:1,e:'The FACP is the brain of the system — it supervises circuits, interprets inputs from detectors/pull stations, and triggers outputs like notification appliances, damper closures, elevator recall, and interfaces to suppression systems.'},
+{id:4,cat:'DETECT',type:'code',standard:'NFPA 72',f:'What does NFPA 72 govern?',b:'The National Fire Alarm and Signaling Code — it governs the design, installation, testing, and maintenance of fire alarm and signaling systems, including detection, notification, and emergency communication.'},
+{id:5,cat:'DETECT',type:'flash',f:'When are beam (projected) smoke detectors preferred over point detectors?',b:'In large open, tall spaces — atria, warehouses, ballrooms — where installing many point detectors would be impractical. A beam detector spans a long path and detects smoke obscuring the beam across the space.'},
+{id:6,cat:'DETECT',type:'mcq',q:'Addressable vs conventional fire alarm systems — what is the key practical difference?',opts:['Addressable systems cost less to install always','Addressable systems identify the exact device that triggered an alarm; conventional systems only identify the zone/circuit','Conventional systems are wireless, addressable are wired','There is no meaningful difference'],a:1,e:'In an addressable system each device has a unique address reported to the panel, pinpointing exactly which detector or pull station activated — much faster response than a conventional zone-based system that only narrows it to a circuit covering multiple devices.'},
+{id:7,cat:'SUPPRESS',type:'mcq',q:'Per NFPA 13, what determines allowable sprinkler spacing and coverage area?',opts:['A single fixed spacing regardless of hazard','Hazard classification (light/ordinary/extra hazard) and sprinkler type, which set maximum protection area per head and max spacing','Only the ceiling height','Only the pipe diameter available'],a:1,e:'NFPA 13 sets maximum coverage area per sprinkler and spacing limits that vary by hazard classification and sprinkler characteristics, ensuring each head adequately wets its protection area.'},
+{id:8,cat:'SUPPRESS',type:'code',standard:'NFPA 13',f:'What does NFPA 13 govern?',b:'The Standard for the Installation of Sprinkler Systems — it governs design, layout, hydraulic calculation, and installation of automatic sprinkler systems across hazard classifications.'},
+{id:9,cat:'SUPPRESS',type:'flash',f:'Wet pipe vs dry pipe sprinkler systems — when is a dry system required?',b:'Wet pipe (water-filled, fastest response) is the default. Dry pipe (pressurized air holding back water at a dry valve) is used where freezing is possible — unheated spaces, cold storage — since water sitting in the pipe would freeze and burst it.'},
+{id:10,cat:'SUPPRESS',type:'mcq',q:'What triggers a deluge valve to release water to all open heads/nozzles simultaneously?',opts:['Manual activation only','A separate fire detection system (heat/smoke/flame), since deluge nozzles are open with no individual heat-sensitive trigger','Water pressure drop alone','A time delay after building occupancy'],a:1,e:'Because deluge nozzles have no individual triggering element, a separate detection system must open the deluge valve, flooding the entire protected zone at once — used where instant total coverage is needed (high-hazard areas).'},
+{id:11,cat:'SUPPRESS',type:'flash',f:'Why are sprinkler bulb/link colors coded by temperature rating?',b:'The color (e.g. orange 57°C, red 68°C, yellow 79°C, green 93°C, blue 141°C) lets installers and inspectors instantly verify the correct temperature-rated head is used for the area\'s expected ambient/ceiling temperature — critical near kitchens, boiler rooms, etc.'},
+{id:12,cat:'SUPPRESS',type:'code',standard:'BS EN 12845',f:'What is BS EN 12845 and where is it commonly used?',b:'The European standard for fixed firefighting systems — automatic sprinkler systems (design and installation). It\'s widely used on international, Gulf, and Asian hospitality/resort projects as an alternative or complement to NFPA 13.'},
+{id:13,cat:'SUPPRESS',type:'lesson',ti:'Pre-action sprinkler systems',bd:'Pre-action systems combine the reliability of a dry system (no standing water in pipes, so accidental head damage doesn\'t discharge water) with an electric fire detection trigger that must activate before the valve admits water into the pipe network — giving two independent events required before discharge. Commonly used in sensitive areas like data centers, museums, and archive rooms.',q:'Why are pre-action systems favored in areas like server rooms or archives?',opts:['They are cheaper than wet systems','They require two independent triggers (detection, then a sprinkler activating) before water is released, minimizing accidental water damage risk','They use foam instead of water','They don\'t require any detection system'],a:1,e:'The double-interlock/single-interlock pre-action logic means water only enters the pipe network after fire detection confirms a real event, then still requires an individual head to open — sharply reducing the chance of accidental discharge from mechanical damage to a head.'},
+{id:14,cat:'PUMPS',type:'mcq',q:'What is the purpose of a fire pump churn (no-flow/shutoff) test?',opts:['To test the fire alarm panel','To verify the pump can safely run at zero flow (shutoff head) without overheating and confirm rated shutoff pressure','To calibrate sprinkler heads','To test the jockey pump only'],a:1,e:'The churn test runs the fire pump against a closed valve to verify shutoff pressure matches the pump curve and confirms the pump (and its relief/minimum-flow valve) handles no-flow conditions safely.'},
+{id:15,cat:'PUMPS',type:'code',standard:'NFPA 20',f:'What does NFPA 20 govern?',b:'The Standard for the Installation of Stationary Pumps for Fire Protection — governs selection, installation, and testing of fire pumps, drivers, and controllers.'},
+{id:16,cat:'PUMPS',type:'flash',f:'What is a jockey pump for?',b:'A small pump that maintains system pressure against minor leaks/pressure fluctuations, preventing the much larger main fire pump from cycling on and off unnecessarily for tiny pressure drops.'},
+{id:17,cat:'PUMPS',type:'mcq',q:'Why do fire pump rooms typically need both an electric pump and a diesel-driven backup pump?',opts:['Purely for redundant plumbing connections','Redundancy against loss of electrical power during a fire event — a diesel pump runs independently of the building/grid electrical supply','Diesel pumps are always cheaper to run','Electric pumps cannot achieve high enough pressure'],a:1,e:'A diesel-driven pump ensures water supply continuity if grid power fails during a fire — a realistic scenario, since fires often coincide with or cause electrical faults.'},
+{id:18,cat:'PUMPS',type:'flash',f:'Why does a fire pump discharge sometimes need a pressure relief valve per NFPA 20?',b:'Centrifugal fire pumps produce their highest discharge pressure at shutoff (churn) or low-flow conditions. If that exceeds the rated working pressure of downstream piping/components, a relief valve bypasses excess flow back to suction/tank to cap the pressure.'},
+{id:19,cat:'STANDPIPE',type:'flash',f:'What is the difference between standpipe Class I, II, and III systems?',b:'Class I: 65mm (2.5") hose connections for fire department use only. Class II: 38mm (1.5") hose stations for trained occupant use. Class III: combines both — connections for fire dept. plus hose stations for occupants.'},
+{id:20,cat:'STANDPIPE',type:'mcq',q:'What is the key functional difference between a hose reel and a fire hydrant landing valve?',opts:['No difference, same equipment','Hose reels are small-bore, fixed-hose, occupant-use first-response devices; hydrant landing valves supply large-bore hose for fire brigade use','Hydrants are only for outdoor use','Hose reels only work with foam'],a:1,e:'Hose reels (typically 25mm, fixed rubber hose) let occupants tackle a fire at incipient stage. Hydrant/landing valve outlets (65mm) supply canvas hose for trained fire brigade personnel delivering much higher flow.'},
+{id:21,cat:'STANDPIPE',type:'code',standard:'NFPA 14',f:'What does NFPA 14 govern?',b:'The Standard for the Installation of Standpipe and Hose Systems — governs design, sizing, and installation of standpipe systems and their hose connections.'},
+{id:22,cat:'STANDPIPE',type:'flash',f:'OS&Y valve — what does it stand for and why is it used on fire mains?',b:'Outside Screw and Yoke. The valve stem is visible outside the body, showing at a glance whether the valve is open or closed — critical for isolation valves on fire protection mains that must never be unknowingly left closed.'},
+{id:23,cat:'STANDPIPE',type:'flash',f:'PIV — what does it stand for in fire protection?',b:'Post Indicator Valve. An underground gate valve with an above-ground indicator post showing OPEN/SHUT status, used to isolate underground fire mains while allowing visual confirmation the valve is open.'},
+{id:24,cat:'GASEOUS',type:'mcq',q:'Why is CO2 clean-agent suppression restricted to unoccupied/evacuated spaces, unlike FM-200 or Novec 1230?',opts:['CO2 is more expensive','CO2 extinguishes by displacing oxygen to a level also lethal to humans; FM-200/Novec extinguish chemically at oxygen-safe concentrations','CO2 is corrosive to equipment','CO2 takes too long to discharge'],a:1,e:'CO2 reduces oxygen concentration below combustion-supporting levels — also below what a person can safely breathe. FM-200 and Novec 1230 interrupt the chemical combustion reaction at concentrations considered safe for brief human exposure.'},
+{id:25,cat:'GASEOUS',type:'code',standard:'NFPA 2001',f:'What does NFPA 2001 govern?',b:'The Standard on Clean Agent Fire Extinguishing Systems — governs design, installation, and safety requirements for gaseous clean-agent suppression systems like FM-200, Novec 1230, and inert gas systems.'},
+{id:26,cat:'GASEOUS',type:'flash',f:'Why do gaseous suppression systems typically use cross-zone detection before releasing agent?',b:'Requiring two independent detectors (in different zones/circuits) to both activate before discharge greatly reduces the risk of a false alarm triggering an expensive, disruptive, and unnecessary gas discharge.'},
+{id:27,cat:'CODES',type:'code',standard:'NFPA 101',f:'What does NFPA 101 (Life Safety Code) govern, and why does it matter to fire protection design?',b:'It governs means of egress, occupant safety, and building construction/protection features. Fire protection systems must be coordinated with its egress requirements — suppression and detection alone aren\'t sufficient without safe evacuation routes.'},
+{id:28,cat:'CODES',type:'mcq',q:'Why must fire protection design be coordinated with architectural means-of-escape planning, not designed in isolation?',opts:['It isn\'t necessary if sprinklers are installed','Detection and suppression buy time, but occupants still need clear, adequately sized, protected escape routes to actually get out safely','Only mechanical systems matter for life safety','Egress design is entirely a structural engineering concern'],a:1,e:'Suppression and detection reduce fire growth and alert occupants, but life safety ultimately depends on occupants reaching safety — meaning travel distances, exit widths, stair pressurization, and signage must all be coordinated with the fire protection strategy.'},
+{id:29,cat:'CODES',type:'flash',f:'Why do most jurisdictions require civil defense/fire authority design approval before construction?',b:'To independently verify the fire protection and life-safety design meets minimum code requirements before life-safety systems are relied upon — typically involving submission of hydraulic calculations, layouts, and system schedules for review.'},
+{id:30,cat:'CODES',type:'mcq',q:'What does an alarm check valve do in a wet pipe sprinkler system?',opts:['Stops all water flow permanently','Allows water to flow to sprinklers while triggering a water-flow alarm, and prevents backflow into the supply','Only tests pressure once a year','Regulates sprinkler head temperature rating'],a:1,e:'The alarm check valve is a one-way valve with a trim assembly that diverts a small flow to a water motor gong / pressure switch when a sprinkler activates and water flows — generating the alarm signal.'},
+{id:31,cat:'CODES',type:'flash',f:'What does the inspector\'s test valve on a sprinkler system verify?',b:'Opening it releases water equivalent to one sprinkler head orifice, confirming the alarm check valve, waterflow switch, and alarm signal chain work correctly — a standard periodic test.'},
+  ]
+  },
+  plumb: {
+    name: "Plumbing Systems Daily",
+    short: "Plumbing",
+    icon: "\ud83d\udeb0",
+    prefix: "plumbapp",
+    ddIntro: "You are a plumbing engineering trainer writing for an experienced MEP engineer who designs water supply, sewer/wastewater, stormwater, and irrigation systems for resort/hospitality buildings.",
+    ddEnum: "SUPPLY|SEWER|STORM|IRRIG|CODES",
+    cats: {
+    SUPPLY:{name:'Water Supply', icon:'🚿'},
+    SEWER:{name:'Sewer & Wastewater', icon:'🕳'},
+    STORM:{name:'Stormwater', icon:'🌧'},
+    IRRIG:{name:'Irrigation', icon:'🌿'},
+    CODES:{name:'Codes & Standards', icon:'📖'},
+  },
+    imgQuery: {
+  1:'pressure reducing valve',2:'water hammer arrestor',3:'hot water recirculation pump',4:'plumbing code fixture unit',5:'air gap plumbing',6:'water supply pipe sizing',
+  7:'plumbing vent stack',8:'gravity drainage pipe',9:'sewer manhole',10:'sewer pipe flow',11:'floor drain',12:'sewer pipe slope',13:'grease trap',
+  14:'stormwater detention tank',15:'rainfall runoff',16:'storm drain design',17:'soakaway drainage',
+  18:'drip irrigation',19:'irrigation controller',20:'backflow preventer',21:'irrigation valve',22:'wastewater reuse irrigation',
+  23:'plumbing engineering reference',24:'globe valve cutaway',25:'pipe union fitting',26:'Y strainer',
+  },
+    content: [
+{id:1,cat:'SUPPLY',type:'mcq',q:'What is a pressure reducing valve (PRV) used for in a domestic water supply riser?',opts:['To increase pump speed','To reduce and stabilize downstream pressure to a safe level for fixtures and pipework, especially at lower floors of tall buildings','To filter sediment','To mix hot and cold water'],a:1,e:'Static pressure increases with building height from the source/tank. A PRV reduces this to within fixture-rated limits (commonly ~3.5 bar max at outlets), preventing pipe/fitting damage, noise, and excessive fixture wear.'},
+{id:2,cat:'SUPPLY',type:'flash',f:'What is a water hammer arrestor and why is it needed?',b:'A device (often an air cushion/piston chamber) installed near quick-closing valves (solenoid valves, washing machines) that absorbs the pressure surge created when flow is suddenly stopped, protecting pipework and joints from shock damage and noise.'},
+{id:3,cat:'SUPPLY',type:'mcq',q:'Why do large buildings/resorts use hot water recirculation loops?',opts:['To save water only','To ensure hot water is available quickly at fixtures without waiting/wasting water, by continuously circulating hot water back to the heater','To pre-cool water','To increase pipe pressure'],a:1,e:'Without recirculation, hot water sits in long branch pipes and cools between uses. A recirculation loop keeps water near set temperature at the fixture takeoff point at all times, avoiding the wait-and-waste cycle.'},
+{id:4,cat:'SUPPLY',type:'code',standard:'IPC / UPC',f:'What do the International Plumbing Code (IPC) and Uniform Plumbing Code (UPC) govern?',b:'Both are widely referenced US model plumbing codes governing water supply sizing, drainage, venting, and fixture requirements — via the Fixture Unit method for water supply and drainage. Many jurisdictions adapt one as their base code.'},
+{id:5,cat:'SUPPLY',type:'flash',f:'Air gap vs mechanical backflow preventer — which is the more reliable method of preventing potable water contamination?',b:'An air gap (a physical, visible vertical separation between the outlet and the flood level of a fixture) is the most reliable — no moving parts to fail. Mechanical devices (RPZ, check valves) work well but can fail and need periodic testing.'},
+{id:6,cat:'SUPPLY',type:'lesson',ti:'Fixture unit method for water supply sizing',bd:'Rather than simply summing every fixture\'s peak flow, the Fixture Unit (or Hunter\'s Curve) method assigns each fixture type a weighted "fixture unit" value reflecting its typical demand and use frequency, then converts the cumulative fixture units to an actual probable peak demand using an empirical curve — because not all fixtures run simultaneously.',q:'Why isn\'t domestic water supply piping simply sized by adding up every fixture\'s maximum flow rate?',opts:['Because that method is actually used, nothing else is needed','Because not all fixtures operate simultaneously — the fixture unit / Hunter\'s Curve method estimates realistic probable peak demand instead of an unrealistic worst case','Because fixture flow rates are always identical','Because pipe sizing has nothing to do with fixture demand'],a:1,e:'Simple summation would grossly oversize pipework since it assumes every fixture runs at once. The probability-based fixture unit method reflects realistic diversity of use, giving practical, economical pipe sizes.'},
+{id:7,cat:'SEWER',type:'mcq',q:'Why does a drainage system need venting (vent stacks/pipes)?',opts:['To reduce pipe cost','To equalize pressure so trap seals aren\'t siphoned or blown, and to release sewer gases safely','To increase water pressure','Venting is optional in all codes'],a:1,e:'Without venting, discharging fixtures create pressure fluctuations that can siphon or push out the water seal in P-traps, letting foul sewer gas into occupied spaces. Vents allow air to enter/escape, keeping flow smooth.'},
+{id:8,cat:'SEWER',type:'code',standard:'BS EN 12056',f:'What does BS EN 12056 govern?',b:'The European standard for gravity drainage systems inside buildings — covering sanitary pipework, stormwater drainage inside buildings, and wastewater lifting plants, commonly referenced on international projects.'},
+{id:9,cat:'SEWER',type:'flash',f:'Why does invert level matter in gravity drainage design?',b:'The invert (inside bottom of pipe) level determines the achievable gradient/fall for gravity flow between manholes and fixtures — engineers calculate invert levels to maintain self-cleansing velocity while avoiding excessive depth or clashes with other services.'},
+{id:10,cat:'SEWER',type:'mcq',q:'Why does gravity sewer design specify a minimum self-cleansing velocity?',opts:['To reduce pipe cost','To prevent solids from settling and accumulating in the pipe, which would cause blockages over time','To increase noise for leak detection','Minimum velocity has no real purpose'],a:1,e:'Below a minimum velocity (typically ~0.6-0.75 m/s depending on code), suspended solids settle out and accumulate, leading to blockages. Manning\'s Equation is commonly used to check achievable velocity at a given slope and flow.'},
+{id:11,cat:'SEWER',type:'flash',f:'What is a floor drain trap primer for?',b:'It periodically (or via small continuous flow) adds water to infrequently-used floor drains, replenishing trap seal water that would otherwise evaporate over time — evaporated trap seals let sewer gas escape into the space.'},
+{id:12,cat:'SEWER',type:'code',standard:"Manning's Equation",f:'What is Manning\'s Equation used for in drainage engineering?',b:'It relates flow rate to pipe slope, roughness, and cross-sectional geometry for open-channel/partial-flow gravity pipe conditions — the standard method for sizing gravity sewers and drains at a given fall.'},
+{id:13,cat:'SEWER',type:'mcq',q:'Why is a grease interceptor installed on kitchen drainage lines?',opts:['To increase flow velocity','To trap fats, oils, and grease before they enter the sewer/STP and solidify, causing blockages','To disinfect wastewater','To measure flow rate'],a:1,e:'FOG (fats, oils, grease) cools and solidifies in pipework, causing blockages and interfering with downstream treatment. The interceptor slows flow so grease floats and separates before effluent continues to the sewer.'},
+{id:14,cat:'STORM',type:'mcq',q:'Why do many resort/coastal sites require stormwater attenuation (detention) rather than direct discharge?',opts:['Attenuation is never actually required','To limit peak discharge rate to downstream systems/receiving waters, preventing flooding or erosion from a sudden surge of runoff','To purify the water chemically','To increase runoff speed'],a:1,e:'Detention tanks or ponds temporarily store stormwater and release it at a controlled rate, matching pre-development or code-mandated discharge limits so downstream drainage/receiving waters aren\'t overwhelmed during storm events.'},
+{id:15,cat:'STORM',type:'flash',f:'What does the Rational Method (Q = C·i·A) calculate in stormwater design?',b:'Peak runoff flow rate, where C is a runoff coefficient (reflecting surface permeability), i is rainfall intensity for a chosen storm duration/return period, and A is catchment area — a widely used method for sizing drainage for smaller catchments.'},
+{id:16,cat:'STORM',type:'code',standard:'Local drainage codes',f:'What determines the "design storm" used for stormwater sizing?',b:'Local/jurisdictional codes typically specify a design storm return period (e.g. 1-in-10 or 1-in-50 year event depending on risk/consequence), setting the rainfall intensity used to size drainage and attenuation capacity.'},
+{id:17,cat:'STORM',type:'lesson',ti:'Soakaways on coastal/high-water-table sites',bd:'Soakaway or infiltration systems let stormwater percolate into the ground rather than being piped away — effective where soil permeability is good and the water table is low. On many coastal resort sites (like Zanzibar), a shallow water table and/or low-permeability soil can make soakaways unreliable or unsuitable, pushing the design toward attenuation tanks with controlled pumped or gravity discharge instead.',q:'Why might soakaways be unsuitable on a coastal resort site with a high water table?',opts:['Soakaways always work regardless of soil/water table conditions','A high water table leaves little unsaturated soil depth for infiltration, so the soakaway can\'t effectively absorb stormwater','Soakaways are illegal on all coastal sites','Soil type has no effect on soakaway performance'],a:1,e:'Infiltration relies on unsaturated soil to absorb and disperse water. A shallow water table limits or eliminates that capacity, often forcing the design toward attenuation and controlled discharge instead of on-site infiltration.'},
+{id:18,cat:'IRRIG',type:'mcq',q:'What is the main water-efficiency advantage of drip irrigation over spray/sprinkler irrigation?',opts:['Drip irrigation uses more water for better coverage','Drip delivers water directly to the root zone with minimal evaporation and overspray losses, compared to broadcast spray patterns','Drip irrigation requires no controller','Sprinkler irrigation always uses less water'],a:1,e:'Because drip emitters apply water slowly and directly at the root zone, evaporation and wind drift losses are far lower than spray irrigation, which loses significant water to evaporation and overspray, especially in hot climates.'},
+{id:19,cat:'IRRIG',type:'flash',f:'What does an ET-based (evapotranspiration) irrigation controller do?',b:'It adjusts watering schedules automatically based on local evapotranspiration data (weather-driven plant water loss), rather than a fixed timer — reducing overwatering and water waste when conditions don\'t require it.'},
+{id:20,cat:'IRRIG',type:'mcq',q:'Why must an irrigation system have a backflow preventer at its connection to the potable water supply?',opts:['It is optional and rarely installed','To prevent contaminated irrigation water (fertilizers, soil, stagnant water) from being siphoned back into the potable water system','To increase irrigation pressure','To filter debris only'],a:1,e:'Irrigation systems are considered a cross-connection hazard — a backflow preventer (often an RPZ device) stops contaminated water from being drawn back into the potable supply during a pressure drop event.'},
+{id:21,cat:'IRRIG',type:'flash',f:'What is a master valve in an irrigation system for?',b:'A normally-closed valve at the system\'s main supply point that only opens when a zone is actively irrigating, acting as a fail-safe against a stuck-open zone valve causing continuous uncontrolled flow/leak.'},
+{id:22,cat:'IRRIG',type:'code',standard:'Water reuse guidance',f:'Why is treated STP effluent commonly specified for irrigation on resort landscapes?',b:'Reusing treated wastewater for irrigation reduces potable water demand and disposal load — many codes and sustainability certifications encourage or require this reuse pathway where treatment quality meets irrigation-safe standards.'},
+{id:23,cat:'CODES',type:'code',standard:'ASPE Data Books',f:'What role do ASPE Data Books play in plumbing engineering?',b:'Published by the American Society of Plumbing Engineers, they serve as a widely used design reference covering sizing methods, fixture data, and best practices — especially valuable where local prescriptive code is silent or less detailed.'},
+{id:24,cat:'CODES',type:'flash',f:'Gate valve vs globe valve — which is better suited for throttling flow, and why?',b:'Globe valve — its S-shaped flow path and disc/seat geometry are designed to handle the turbulence of partial flow control, giving smoother regulation and less seat erosion. Gate valves are meant for full-open/full-closed duty only.'},
+{id:25,cat:'CODES',type:'mcq',q:'Why should unions or flanged joints be installed near pumps, valves, and equipment?',opts:['They are purely decorative','They allow quick disconnection of pipework for maintenance or equipment replacement without cutting pipe or disturbing the whole system','They increase pressure drop intentionally','They are required only for equipment over a certain size'],a:1,e:'Unions/flanges give serviceable break-points in the pipework, letting equipment be removed or swapped without major disruption to the rest of the installation.'},
+{id:26,cat:'CODES',type:'flash',f:'What is a Y-strainer used for on a pump suction line?',b:'It catches debris/solids before they enter and damage the pump impeller or clog downstream fittings — sized to protect the pump while avoiding excessive pressure drop, with periodic cleaning required.'},
+  ]
+  },
+  acmv: {
+    name: "ACMV Systems Daily",
+    short: "ACMV",
+    icon: "\u2744",
+    prefix: "acmvapp",
+    ddIntro: "You are an HVAC/ACMV engineering trainer writing for an experienced MEP engineer who designs air conditioning, mechanical ventilation, and smoke control systems for resort/hospitality buildings.",
+    ddEnum: "COOLING|AIR|CONTROLS|SMOKE|CODES",
+    cats: {
+    COOLING:{name:'Cooling & Refrigeration', icon:'❄'},
+    AIR:{name:'Air Distribution & Ventilation', icon:'🌬'},
+    CONTROLS:{name:'Controls & Efficiency', icon:'⚙'},
+    SMOKE:{name:'Smoke Control & Pressurization', icon:'🚪'},
+    CODES:{name:'Codes & Standards', icon:'📖'},
+  },
+    imgQuery: {
+  1:'refrigeration piping diagram',2:'psychrometric chart',3:'thermostatic expansion valve',4:'refrigerant piping',5:'cooling tower',6:'machine room ventilation',
+  7:'VAV box',8:'air handling unit',9:'condensate drain trap',10:'duct static pressure',11:'HVAC air filter',
+  12:'variable frequency drive',13:'balancing valve',14:'expansion tank',15:'economizer HVAC',16:'pipe insulation',
+  17:'stairwell pressurization fan',18:'fire damper duct',19:'smoke control system',20:'pressurized stairwell door',
+  21:'HVAC ventilation duct',22:'building energy efficiency',23:'HVAC load calculation',24:'refrigerant detector',25:'centrifugal fan curve',
+  },
+    content: [
+{id:1,cat:'COOLING',type:'mcq',q:'In a VRV/VRF refrigerant riser, why is an oil trap (U-bend) installed every 3-4.5m of vertical rise?',opts:['To reduce pipe noise','To ensure compressor oil is carried back up with the refrigerant flow','To allow thermal expansion','To trap refrigerant for servicing'],a:1,e:'At low refrigerant velocities in vertical risers, oil separates and drains back down by gravity. Oil traps collect it so gas velocity can sweep it upward, protecting compressor lubrication.'},
+{id:2,cat:'COOLING',type:'flash',f:'What does SHR (Sensible Heat Ratio) tell you?',b:'The proportion of total cooling load that is sensible (temperature) vs latent (moisture removal). SHR = Sensible Load / Total Load. High-humidity spaces (spas, kitchens) need lower SHR equipment.'},
+{id:3,cat:'COOLING',type:'flash',f:'TXV — what does it stand for and what does it do?',b:'Thermostatic Expansion Valve. It meters refrigerant flow into the evaporator based on superheat, maintaining efficient evaporator performance across varying load conditions — more precise than a fixed orifice.'},
+{id:4,cat:'COOLING',type:'mcq',q:'Why must refrigerant pipe sizing keep gas velocity within a specific range, not just "big enough"?',opts:['Only to reduce noise','Too low a velocity fails to carry oil back to the compressor; too high causes excess pressure drop and noise','To match compressor color coding','Velocity has no real design impact'],a:1,e:'Refrigerant piping is a balance: minimum velocity ensures oil entrainment back to the compressor, while a maximum limits pressure drop, noise, and pipe erosion.'},
+{id:5,cat:'COOLING',type:'lesson',ti:'Cooling tower Range & Approach',bd:'Range is the temperature drop of water across the tower (inlet minus outlet). Approach is how close the tower gets the water to the ambient wet-bulb temperature (outlet water temp minus wet-bulb). A smaller approach means a more efficient, typically larger/costlier tower.',q:'A cooling tower has water entering at 35°C and leaving at 29.5°C, with ambient wet-bulb at 27°C. What is the approach?',opts:['5.5°C (the range)','2.5°C','8°C','29.5°C'],a:1,e:'Approach = leaving water temp minus wet-bulb = 29.5 minus 27 = 2.5°C. Range = 35 minus 29.5 = 5.5°C. Two different, commonly confused metrics.'},
+{id:6,cat:'COOLING',type:'mcq',q:'Why is a machine room ventilation and refrigerant detection requirement triggered by refrigerant charge size (per ASHRAE 15)?',opts:['It is purely a cost-driven design choice','Large refrigerant charges pose an asphyxiation/toxicity risk if leaked in an enclosed space, so ASHRAE 15 mandates ventilation and detection above certain charge thresholds','It has nothing to do with safety','Only applies to ammonia systems'],a:1,e:'ASHRAE 15 sets machine room safety requirements — mechanical ventilation and refrigerant detectors — scaled to refrigerant type and quantity, since a leak in an enclosed plant room can create a hazardous atmosphere.'},
+{id:7,cat:'AIR',type:'mcq',q:'CAV vs VAV — what is the key operational difference?',opts:['CAV varies temperature, VAV varies humidity','CAV supplies constant airflow at varying temperature; VAV varies airflow to maintain temperature','VAV only works in winter','CAV is only for exhaust systems'],a:1,e:'Constant Air Volume (CAV) systems modulate supply air temperature at a fixed flow rate. Variable Air Volume (VAV) systems keep supply air temp roughly constant and throttle volume via VAV boxes/dampers — more energy efficient for varying loads.'},
+{id:8,cat:'AIR',type:'flash',f:'AHU vs FCU — what is the core difference?',b:'An AHU (Air Handling Unit) is typically a larger central unit conditioning air for multiple zones via ductwork, often with fresh air intake and filtration. An FCU (Fan Coil Unit) is a smaller zone-level unit with a coil and fan, served by a central chilled/hot water plant.'},
+{id:9,cat:'AIR',type:'mcq',q:'Why does an AC condensate drain line need a P-trap?',opts:['To collect debris','To prevent negative pressure in the unit from pulling odors/air back through the drain, and to maintain drainage seal','To slow the water down','It is purely decorative'],a:1,e:'The AHU/FCU operates under slight negative pressure. Without a trap, that pressure would suck air (and odors, insects) back up the condensate line, or air lock could prevent proper drainage.'},
+{id:10,cat:'AIR',type:'flash',f:'What is the difference between static pressure and velocity pressure in a duct system?',b:'Static pressure pushes air outward against duct walls (the pressure that drives flow through resistance/friction). Velocity pressure results from air motion itself. Total pressure = static + velocity — fan selection is based on total system static pressure requirement.'},
+{id:11,cat:'AIR',type:'flash',f:'MERV / EN779 filter ratings — what do they indicate?',b:'They classify a filter\'s particle capture efficiency across particle size ranges — higher MERV (or finer EN779/ISO 16890 class) means finer filtration but typically higher pressure drop, affecting fan energy and filter change frequency.'},
+{id:12,cat:'CONTROLS',type:'flash',f:'What is a VFD (Variable Frequency Drive) used for on an AHU fan or pump?',b:'It varies the electrical frequency supplied to the motor, changing its rotational speed, so fans/pumps match actual demand instead of running at full speed with dampers/valves throttling — saving significant energy (affinity laws: power proportional to speed cubed).'},
+{id:13,cat:'CONTROLS',type:'mcq',q:'Why is a balancing valve installed on each branch of a hydronic (chilled/hot water) distribution loop?',opts:['To isolate the branch for maintenance only','To measure and set the correct flow rate to each branch so all terminals get design flow','To prevent water hammer','To filter debris'],a:1,e:'Without balancing, water takes the path of least resistance and branches closest to the pump get excess flow while distant ones are starved. Balancing valves (with flow measurement ports) let commissioning engineers set each branch to design flow.'},
+{id:14,cat:'CONTROLS',type:'mcq',q:'What is the function of an expansion tank in a closed hydronic loop?',opts:['To store extra water for fire fighting','To absorb the volumetric expansion of water as it heats up, controlling system pressure','To remove air from the system','To boost pump pressure'],a:1,e:'Water expands as it heats. In a closed loop this would spike pressure dangerously without somewhere to go — the expansion tank accommodates that volume change, keeping system pressure within safe limits.'},
+{id:15,cat:'CONTROLS',type:'flash',f:'What is an economizer / free cooling cycle?',b:'It uses cool outside air directly (or via a heat exchanger) to meet part or all of the cooling load when ambient conditions are favorable, reducing mechanical (compressor) cooling energy use.'},
+{id:16,cat:'CONTROLS',type:'flash',f:'Chilled water pipe insulation — what is its primary purpose?',b:'Primarily to prevent condensation on the pipe surface (since pipe temp is below ambient dew point), not just to save energy. A breached vapor barrier lets moisture migrate in, causing wet insulation and corrosion under insulation (CUI) — a common site defect to check for.'},
+{id:17,cat:'SMOKE',type:'flash',f:'What does staircase pressurization achieve during a fire?',b:'It maintains a positive air pressure in the escape stair relative to the fire floor, preventing smoke ingress into the protected escape route so occupants can evacuate safely.'},
+{id:18,cat:'SMOKE',type:'mcq',q:'Why are fire/smoke dampers required at duct penetrations through fire-rated walls or floors?',opts:['Purely for airflow balancing, no fire function','To maintain the fire-resistance rating of the wall/floor by automatically closing off the duct penetration during a fire, preventing fire/smoke spread through the ductwork','To reduce duct noise','They are decorative access panels'],a:1,e:'A duct penetration is a breach in a fire-rated barrier. Fire/smoke dampers close automatically (via fusible link or detection signal) to restore that barrier\'s integrity, stopping fire and smoke from spreading through the duct system.'},
+{id:19,cat:'SMOKE',type:'code',standard:'BS EN 12101-6 / NFPA 92',f:'What do BS EN 12101-6 and NFPA 92 govern?',b:'They govern the design of smoke control systems — including stair, lobby, and shaft pressurization — setting requirements for pressure differentials, leakage assumptions, and door-opening force limits to keep escape routes smoke-free.'},
+{id:20,cat:'SMOKE',type:'flash',f:'Why does stair pressurization design include a maximum door-opening force check?',b:'Excess pressurization can make doors too hard to open manually, trapping occupants. Design must balance enough pressure to exclude smoke against a door force occupants (including less able ones) can realistically overcome.'},
+{id:21,cat:'CODES',type:'code',standard:'ASHRAE 62.1',f:'What does ASHRAE 62.1 govern?',b:'Ventilation for Acceptable Indoor Air Quality — it sets minimum outdoor air ventilation rates for different space types to maintain healthy indoor air quality.'},
+{id:22,cat:'CODES',type:'code',standard:'ASHRAE 90.1',f:'What does ASHRAE 90.1 govern?',b:'Energy Standard for Buildings Except Low-Rise Residential — it sets minimum energy efficiency requirements for HVAC, lighting, and building envelope systems.'},
+{id:23,cat:'CODES',type:'code',standard:'ASHRAE Fundamentals',f:'What role does the ASHRAE Fundamentals Handbook play in HVAC design?',b:'It is the core technical reference for load calculation methodology, psychrometrics, heat transfer, and design data underpinning most HVAC engineering calculations and software (like HAP).'},
+{id:24,cat:'CODES',type:'code',standard:'ASHRAE 15',f:'What does ASHRAE 15 govern?',b:'The Safety Standard for Refrigeration Systems — it governs refrigerant classification, machine room ventilation, detection, and safety requirements based on refrigerant type and quantity.'},
+{id:25,cat:'CODES',type:'mcq',q:'What is the practical implication of the fan/pump affinity laws for VFD-driven energy savings?',opts:['Speed and power have no real relationship','Power consumption varies roughly with the cube of speed, so even a modest speed reduction gives a large energy saving','Power varies inversely with speed','Affinity laws only apply to refrigeration compressors'],a:1,e:'Because power is roughly proportional to speed cubed, reducing a fan or pump to 80% speed can cut power draw to roughly half — this is the core reason VFDs deliver such strong energy savings versus throttling with dampers/valves at full speed.'},
+  ]
+  },
+  steam: {
+    name: "Steam & Compressed Air Daily",
+    short: "Steam & Air",
+    icon: "\u2668",
+    prefix: "steamapp",
+    ddIntro: "You are a plant/process engineering trainer writing for an experienced MEP engineer who designs steam distribution and compressed air systems for resort/hospitality and facility projects.",
+    ddEnum: "STEAM|COMPAIR|CODES",
+    cats: {
+    STEAM:{name:'Steam Systems', icon:'♨'},
+    COMPAIR:{name:'Compressed Air', icon:'🌀'},
+    CODES:{name:'Codes & Standards', icon:'📖'},
+  },
+    imgQuery: {
+  1:'steam trap',2:'thermodynamic steam trap',3:'steam pipe slope',4:'flash steam vessel',5:'power piping steam',6:'pressure reducing station steam',
+  7:'water hammer steam pipe',8:'steam quality dryness',9:'boiler pressure vessel',10:'condensate return pump',11:'boiler safety valve',12:'steam header manifold',
+  13:'steam trap sizing',14:'air receiver tank',15:'compressed air dryer',16:'desiccant air dryer',17:'compressed air piping drain',
+  18:'oil free air compressor',19:'compressor intercooler',20:'compressed air quality',
+  21:'process piping',22:'boiler combustion safety',23:'boiler room ventilation',24:'air receiver drain valve',
+  },
+    content: [
+{id:1,cat:'STEAM',type:'mcq',q:'What is the basic purpose of a steam trap?',opts:['To generate steam','To automatically discharge condensate (and air) from the steam system while preventing live steam from escaping','To increase steam pressure','To measure steam flow rate'],a:1,e:'Steam traps sense the difference between condensate and live steam (via temperature, density, or thermodynamic effect) and open to release condensate/air while keeping steam in the system where it does useful work.'},
+{id:2,cat:'STEAM',type:'flash',f:'How does a thermodynamic (disc) steam trap operate?',b:'It uses the velocity/pressure difference between flash steam and condensate across a flat disc — condensate flow lifts the disc to discharge, while high-velocity flash steam creates a pressure effect above the disc that snaps it shut, retaining live steam.'},
+{id:3,cat:'STEAM',type:'mcq',q:'Why must steam piping be pitched (sloped) in the direction of flow?',opts:['For aesthetic reasons only','To allow condensate to drain by gravity toward low points/traps rather than pooling in the pipe and being carried along with the steam','It has no functional purpose','To reduce pipe material cost'],a:1,e:'Steam naturally condenses as it loses heat along a pipe run. Without proper pitch to drain points, condensate accumulates in the pipe, and fast-moving steam can pick it up as slugs, causing water hammer.'},
+{id:4,cat:'STEAM',type:'flash',f:'What is "flash steam" and where does it come from?',b:'When high-pressure condensate is released to a lower pressure (e.g. through a steam trap), some of it instantly re-vaporizes because its temperature is above the boiling point at the new lower pressure — this re-vaporized fraction is flash steam, which can be recovered and reused rather than wasted.'},
+{id:5,cat:'STEAM',type:'code',standard:'ASME B31.1',f:'What does ASME B31.1 (Power Piping) govern?',b:'It governs the design, materials, fabrication, and inspection of power piping systems, including steam and high-pressure/high-temperature piping typically found in central plant and boiler distribution systems.'},
+{id:6,cat:'STEAM',type:'mcq',q:'What is a pressure reducing station (PRS) used for in a steam distribution system?',opts:['To increase steam pressure for far-away users','To reduce high-pressure boiler-generated steam down to the lower pressure required by specific end-use equipment, in a controlled and safe manner','To remove moisture from steam only','To generate electricity from steam'],a:1,e:'Steam is often generated and distributed at a higher pressure for efficiency, then reduced at PRS stations (with safety relief protection) to the specific lower pressure needed by kitchen equipment, laundry, or heat exchangers.'},
+{id:7,cat:'STEAM',type:'flash',f:'Why is water hammer in steam systems considered especially dangerous?',b:'A slug of condensate carried along by high-velocity steam can strike a pipe fitting or valve with tremendous force due to the density difference and steam\'s high energy content — capable of rupturing pipework or damaging equipment, more violently than typical water-system hammer.'},
+{id:8,cat:'STEAM',type:'lesson',ti:'Steam quality and dryness fraction',bd:'Steam quality (dryness fraction) describes what proportion of the steam is actually vapor versus entrained water droplets. "Wet" steam carrying moisture reduces heat transfer efficiency at the point of use and increases the risk of water hammer and erosion in piping and control valves — proper drainage, trap placement, and separator use help maintain high steam quality.',q:'Why does low steam quality (wet steam) matter for a heat exchanger or process application?',opts:['It has no real effect on performance','Entrained water droplets reduce effective heat transfer and increase water hammer/erosion risk, reducing efficiency and equipment life','Wet steam always improves heat transfer','Steam quality only matters for boiler design, not distribution'],a:1,e:'The energy content usefully delivered by steam comes largely from its latent heat as vapor condenses; entrained water doesn\'t carry the same useful energy and instead adds erosion/water hammer risk, so maintaining high dryness fraction matters throughout distribution.'},
+{id:9,cat:'STEAM',type:'code',standard:'ASME BPVC',f:'What does the ASME Boiler and Pressure Vessel Code (BPVC) govern?',b:'It governs the design, fabrication, inspection, and safety of boilers and pressure vessels — a foundational code referenced for boiler plant design, construction, and certification.'},
+{id:10,cat:'STEAM',type:'mcq',q:'Why is steam condensate typically returned to the boiler feed system rather than discharged to drain?',opts:['Condensate return has no real benefit','It recovers heat energy, saves treated water, and reduces make-up water chemical treatment costs — all improving overall system efficiency','Condensate is hazardous and must never be reused','It reduces boiler pressure requirements'],a:1,e:'Returned condensate is already hot, pre-treated water, so reusing it as boiler feed significantly cuts fuel energy needed to reheat fresh make-up water and reduces water treatment chemical consumption.'},
+{id:11,cat:'STEAM',type:'flash',f:'Why is a pressure relief/safety valve mandatory on a steam boiler?',b:'It is a critical safety device that automatically vents excess pressure if the boiler exceeds its safe working pressure, preventing a potentially catastrophic overpressure failure/explosion — a non-negotiable code requirement.'},
+{id:12,cat:'STEAM',type:'flash',f:'What is a steam header (manifold) used for?',b:'A central distribution point where steam from the boiler(s) is collected and then split off to multiple downstream users/branches at a controlled common pressure, simplifying distribution and isolation.'},
+{id:13,cat:'STEAM',type:'mcq',q:'Why must steam traps be correctly sized rather than just "large enough"?',opts:['Trap sizing has no real consequence','An undersized trap causes condensate backup and water hammer risk; an oversized trap wastes live steam by blowing it through before it fully condenses','Oversized traps are always more efficient','Steam traps do not need sizing calculations'],a:1,e:'Trap capacity must match the actual condensate load at the operating pressure differential — too small backs up condensate into the process/pipe, too large risks passing live steam through, wasting energy.'},
+{id:14,cat:'COMPAIR',type:'mcq',q:'What is the purpose of an air receiver tank in a compressed air system?',opts:['To generate compressed air','To buffer supply and demand fluctuations, reduce compressor cycling, and allow moisture/condensate to settle out','To filter oil only','To reduce electrical demand of the compressor motor'],a:1,e:'The receiver smooths out short-term demand spikes so the compressor doesn\'t cycle excessively, improves system stability, and gives condensate time to drop out before the air travels further downstream.'},
+{id:15,cat:'COMPAIR',type:'flash',f:'What does "dew point" mean in the context of compressed air drying?',b:'The temperature at which moisture in the compressed air begins to condense. A lower (more negative) dew point means drier air — critical for instrument air, pneumatic tools, and any application sensitive to moisture or freezing in lines.'},
+{id:16,cat:'COMPAIR',type:'mcq',q:'Refrigerated vs desiccant compressed air dryers — what is the key difference?',opts:['They perform identically in all applications','Refrigerated dryers achieve moderate dew points (~+3°C) suitable for general use; desiccant dryers achieve much lower dew points (down to -40°C or lower), needed for critical or outdoor/freezing-exposed applications','Desiccant dryers use no consumables','Refrigerated dryers are only used for oil removal'],a:1,e:'Refrigerated dryers cool air to condense out moisture and are adequate for most general plant use. Desiccant dryers use a moisture-absorbing media to reach much lower dew points, essential where lines are exposed to freezing or for critical instrument air.'},
+{id:17,cat:'COMPAIR',type:'flash',f:'Why should compressed air piping be sloped and fitted with drain points?',b:'Even after drying, some moisture condenses in distribution piping as air cools further downstream. Sloped piping with low-point drains removes this condensate before it reaches tools/instruments, preventing corrosion and moisture-related faults.'},
+{id:18,cat:'COMPAIR',type:'lesson',ti:'Oil-free vs oil-lubricated compressors',bd:'Oil-lubricated compressors are generally more cost-effective and durable for general industrial/utility compressed air use, with oil carryover managed by downstream filtration. Oil-free compressors eliminate the lubricant from the compression chamber entirely, avoiding any risk of oil contamination — required for food and beverage processing, pharmaceutical, and other critical applications where trace oil carryover is unacceptable.',q:'Why would a resort\'s kitchen or spa/pharma-grade application specifically require an oil-free compressor?',opts:['Oil-free compressors are always cheaper, that\'s the only reason','Any risk of oil carryover into the air stream is unacceptable for food-contact or critical/clean applications, so eliminating oil from the compression chamber removes that risk entirely','Oil-lubricated compressors cannot reach high enough pressure','Oil-free compressors require no maintenance at all'],a:1,e:'Even well-filtered oil-lubricated air carries some risk of trace oil carryover. For food-contact or critical clean-air applications, that risk is unacceptable, so an oil-free compressor design is specified despite typically higher capital cost.'},
+{id:19,cat:'COMPAIR',type:'flash',f:'What is the purpose of an intercooler in a multi-stage air compressor?',b:'It cools compressed air between compression stages, reducing its temperature (and volume) before the next stage — improving overall compression efficiency and reducing the thermal/mechanical stress on later stages.'},
+{id:20,cat:'COMPAIR',type:'code',standard:'ISO 8573-1',f:'What does ISO 8573-1 classify?',b:'It is the international standard classifying compressed air purity — defining classes for particle content, water content (including dew point), and oil content, used to specify air quality requirements for different applications.'},
+{id:21,cat:'CODES',type:'code',standard:'ASME B31.3',f:'What does ASME B31.3 (Process Piping) cover, and how does it relate to compressed air/process steam?',b:'It governs process piping design across industries, and can apply to compressed air or process steam piping depending on the specific application and scope, complementing or overlapping with B31.1 for power piping.'},
+{id:22,cat:'CODES',type:'code',standard:'NFPA 85 / 86',f:'What do NFPA 85 and 86 govern?',b:'They cover combustion and boiler/furnace safety systems — governing safety interlocks, purge sequences, and protective systems for larger boiler and combustion installations to prevent explosion hazards.'},
+{id:23,cat:'CODES',type:'mcq',q:'Why do steam boiler rooms typically require dedicated combustion air supply and explosion relief provisions?',opts:['These are optional design enhancements only','Combustion requires adequate air supply for safe, complete burning, and explosion relief provisions limit damage/injury risk in the rare event of a combustion-related overpressure incident','Boiler rooms never need special ventilation','Explosion relief is only relevant for gas turbines'],a:1,e:'Combustion air ensures safe, efficient burning (avoiding incomplete combustion hazards), while explosion relief panels/venting are a safety design feature limiting the consequences of an abnormal combustion event in the confined boiler room.'},
+{id:24,cat:'CODES',type:'flash',f:'What is a compressed air receiver drain valve for?',b:'It removes accumulated condensate from the bottom of the receiver tank, either manually or via an automatic (float or timed) drain valve, preventing moisture buildup from being carried into the distribution system.'},
+  ]
+  },
+  wtreat: {
+    name: "Water Treatment Daily",
+    short: "Water Treat",
+    icon: "\ud83e\uddeb",
+    prefix: "wtreatapp",
+    ddIntro: "You are a water and wastewater treatment engineering trainer writing for an experienced MEP engineer who designs sewage treatment plants (STP) and seawater reverse osmosis (SWRO) systems for resort/hospitality projects.",
+    ddEnum: "STP|SWRO|CODES",
+    cats: {
+    STP:{name:'Sewage Treatment (STP)', icon:'🧫'},
+    SWRO:{name:'Seawater RO / Desalination', icon:'🌊'},
+    CODES:{name:'Codes & Standards', icon:'📖'},
+  },
+    imgQuery: {
+  1:'sewage treatment plant',2:'BOD wastewater test',3:'membrane bioreactor',4:'sludge dewatering',5:'wastewater irrigation reuse',6:'aeration tank wastewater',
+  7:'wastewater effluent standard',8:'anaerobic digester wastewater',
+  9:'reverse osmosis membrane',10:'RO pretreatment filtration',11:'seawater reverse osmosis plant',12:'energy recovery device desalination',
+  13:'brine discharge outfall',14:'RO membrane fouling',15:'reverse osmosis recovery',16:'silt density index',
+  17:'UV water disinfection',18:'water chlorination',19:'drinking water quality',20:'desalinated water TDS',
+  },
+    content: [
+{id:1,cat:'STP',type:'lesson',ti:'STP basic treatment stages',bd:'A typical resort STP follows: (1) Screening/preliminary treatment removing solids/grit, (2) Primary treatment (settling), (3) Secondary biological treatment (activated sludge/MBBR/MBR — microorganisms breaking down organic matter), (4) Tertiary treatment (filtration/disinfection, often UV or chlorination) before discharge or reuse (e.g. irrigation).',q:'Which stage of STP treatment primarily uses microorganisms to break down dissolved organic matter?',opts:['Screening','Primary settling','Secondary biological treatment','Chlorination'],a:2,e:'Secondary treatment is biological — aerobic microorganisms consume organic pollutants, converting them into biomass (sludge) and gases, significantly reducing BOD/COD before tertiary polishing.'},
+{id:2,cat:'STP',type:'flash',f:'What does BOD (Biochemical Oxygen Demand) measure, and why does STP design target reducing it?',b:'BOD measures the oxygen consumed by microorganisms breaking down organic matter in water — a proxy for organic pollution load. Reducing BOD is a core STP design goal since high-BOD discharge depletes oxygen in receiving waters, harming aquatic life.'},
+{id:3,cat:'STP',type:'mcq',q:'MBR (Membrane Bioreactor) vs conventional activated sludge — what is the main advantage of MBR?',opts:['MBR requires no aeration at all','MBR combines biological treatment with membrane filtration, achieving very high effluent quality in a smaller footprint than conventional clarifiers','MBR is always cheaper to install','MBR eliminates the need for any secondary treatment'],a:1,e:'By replacing gravity clarifiers with membranes, MBR achieves a much higher quality, essentially solids-free effluent, and can operate at higher biomass concentrations — reducing footprint, which is valuable on constrained resort sites.'},
+{id:4,cat:'STP',type:'flash',f:'What is sludge digestion/dewatering for in an STP?',b:'It stabilizes and reduces the volume of biological sludge produced during treatment (via anaerobic/aerobic digestion and mechanical dewatering), making it more manageable and less costly to dispose of or reuse.'},
+{id:5,cat:'STP',type:'mcq',q:'Why is treated STP effluent commonly reused for irrigation on resort sites rather than simply discharged?',opts:['Reuse is never permitted by any code','It reduces potable water demand for landscaping and disposal/discharge burden, and is often incentivized or required by sustainability regulations','Treated effluent cannot be used for any purpose','Irrigation reuse increases operating costs with no benefit'],a:1,e:'Reusing treated effluent for irrigation conserves potable water, reduces reliance on discharge infrastructure, and is frequently encouraged (or mandated) by environmental and sustainability requirements for resort developments.'},
+{id:6,cat:'STP',type:'flash',f:'What does "hydraulic retention time" (HRT) mean in an STP process tank?',b:'The average time wastewater spends in a given treatment tank/basin (Volume ÷ Flow rate) — a key design parameter ensuring biological processes have enough contact time to achieve the required treatment level.'},
+{id:7,cat:'STP',type:'code',standard:'WHO / local effluent standards',f:'What do effluent discharge/reuse standards typically regulate for treated wastewater?',b:'They set allowable limits for parameters like BOD, TSS (total suspended solids), and pathogen indicators depending on the discharge destination (sea outfall, surface water) or reuse purpose (irrigation), protecting public health and the environment.'},
+{id:8,cat:'STP',type:'mcq',q:'Why do STP designs typically include both aerobic and (in some processes) anaerobic treatment stages?',opts:['They serve identical purposes and either works alone','Aerobic processes efficiently break down organic matter with oxygen present; anaerobic processes (e.g. in sludge digestion) further stabilize sludge and can generate biogas, without requiring aeration energy','Anaerobic treatment is only used for drinking water','Aerobic treatment is never used in STPs'],a:1,e:'Aerobic biological treatment (activated sludge, MBBR, MBR) handles the main organic load efficiently. Anaerobic digestion of the resulting sludge further reduces volume/pathogens and can recover biogas energy, without the energy cost of aeration.'},
+{id:9,cat:'SWRO',type:'mcq',q:'What is the purpose of an RO (Reverse Osmosis) membrane?',opts:['To add minerals to water','To remove dissolved salts and impurities by forcing water through a semi-permeable membrane under high pressure, rejecting dissolved solids','To heat water for disinfection','To measure water flow rate'],a:1,e:'RO membranes allow water molecules through while rejecting dissolved salts and most contaminants, driven by pressure exceeding the feed water\'s osmotic pressure — the core desalination/purification mechanism.'},
+{id:10,cat:'SWRO',type:'flash',f:'Why is pre-treatment (media/cartridge filtration) needed before an RO membrane?',b:'RO membranes are highly susceptible to fouling and damage from suspended solids, organics, and scale-forming ions. Pre-treatment removes these before the feed water reaches the membrane, protecting it and extending membrane life.'},
+{id:11,cat:'SWRO',type:'mcq',q:'Why does seawater RO require much higher operating pressure than brackish water RO?',opts:['Seawater is simply pumped further, requiring more pressure to travel','Seawater has much higher salinity/osmotic pressure that must be overcome to drive water through the membrane against the concentration gradient','Seawater RO membranes are physically thicker for no functional reason','Pressure requirements are identical regardless of salinity'],a:1,e:'Osmotic pressure increases with salinity. Seawater\'s high dissolved salt content means a much higher applied pressure (typically 55-80+ bar) is needed to overcome osmotic pressure and drive permeate through the membrane, versus brackish water RO (much lower pressure).'},
+{id:12,cat:'SWRO',type:'flash',f:'What does a pressure/energy exchanger device do in an SWRO plant?',b:'It recovers energy from the high-pressure reject brine stream leaving the membranes and transfers it to incoming feed water, dramatically cutting the pump energy needed — one of the most significant energy efficiency measures in modern SWRO design.'},
+{id:13,cat:'SWRO',type:'code',standard:'Coastal/environmental discharge regulations',f:'What do brine discharge regulations typically require for SWRO plants?',b:'Since concentrated reject brine can locally raise salinity and harm marine ecosystems near the outfall, regulations often require diffusion/dilution design (e.g. multi-port diffusers) to disperse brine and limit environmental impact.'},
+{id:14,cat:'SWRO',type:'mcq',q:'Why is membrane fouling/scaling a major operational concern in RO systems, and what does antiscalant dosing address?',opts:['Fouling has no real impact on RO performance','Fouling/scaling reduces membrane flux and increases pressure drop over time; antiscalant chemicals inhibit precipitation of scale-forming salts (like calcium carbonate) on the membrane surface','Antiscalant dosing replaces the need for any pre-treatment','Fouling only affects brackish water RO, not seawater RO'],a:1,e:'As water is concentrated through the membrane stages, dissolved salts can exceed their solubility limit and precipitate onto the membrane, reducing performance. Antiscalants keep these salts in solution longer, protecting membrane performance and extending cleaning intervals.'},
+{id:15,cat:'SWRO',type:'lesson',ti:'Recovery rate in RO systems',bd:'Recovery rate is the percentage of feed water converted into usable permeate (the rest becomes concentrated reject/brine). Seawater RO typically operates at a lower recovery rate (roughly 40-50%) than brackish water RO (which can reach 75-85%+), because seawater\'s higher salinity increases fouling/scaling risk at higher concentration factors.',q:'Why does seawater RO typically operate at a lower recovery rate than brackish water RO?',opts:['Seawater RO membranes are less efficient by design, unrelated to salinity','Higher feed salinity means the reject stream becomes concentrated to problematic (fouling/scaling) levels sooner, limiting how much permeate can be recovered before that becomes an issue','Recovery rate has no relationship to salinity','Brackish water always has a lower recovery rate than seawater'],a:1,e:'As more permeate is extracted, the remaining reject stream becomes increasingly concentrated. Seawater\'s already-high starting salinity means that concentration factor hits problematic fouling/scaling levels at a lower recovery percentage than for lower-salinity brackish water.'},
+{id:16,cat:'SWRO',type:'flash',f:'What does SDI (Silt Density Index) measure in feedwater, and why does it matter?',b:'SDI measures a feedwater\'s fouling potential (how quickly it clogs a test filter) — a low SDI indicates feedwater is well pre-treated and less likely to foul the downstream RO membranes quickly.'},
+{id:17,cat:'CODES',type:'flash',f:'Why is UV disinfection often applied after RO or STP treatment before reuse or potable use?',b:'UV provides an additional disinfection barrier against pathogens (including some chlorine-resistant organisms) without adding chemical residual, commonly used as a final polishing step before water is reused or distributed.'},
+{id:18,cat:'CODES',type:'mcq',q:'Why is chlorination sometimes still applied after UV treatment in a water system?',opts:['UV always eliminates the need for any further disinfection','UV disinfects at the point of treatment but leaves no residual protection; chlorine provides a persistent residual disinfectant protecting water through storage and distribution','Chlorination is required only for legal/paperwork reasons','UV and chlorine perform identical functions redundantly'],a:1,e:'UV inactivates pathogens instantly as water passes through the UV chamber but doesn\'t protect water further downstream. A small chlorine residual guards against recontamination during storage and distribution — the two methods are often complementary.'},
+{id:19,cat:'CODES',type:'code',standard:'WHO Guidelines',f:'What role do WHO drinking water guidelines play for treated/desalinated water?',b:'They provide internationally recognized benchmark parameters (including TDS and other water quality limits) that many national/local potable water standards reference or adapt for treated and desalinated water end use.'},
+{id:20,cat:'CODES',type:'flash',f:'What TDS (Total Dissolved Solids) level is typically targeted for SWRO product (potable) water?',b:'Commonly below roughly 500 mg/L TDS for potable use (often blended or further polished to reach target taste/mineral levels), though exact targets depend on local regulatory and taste/quality standards.'},
+  ]
+  },
+  pool: {
+    name: "Pools, Water Features & Water Parks Daily",
+    short: "Pool & Water",
+    icon: "\ud83c\udfca",
+    prefix: "poolapp",
+    ddIntro: "You are a pool and water feature engineering trainer writing for an experienced MEP engineer who designs swimming pools, decorative water features, and water park attractions for resort/hospitality projects.",
+    ddEnum: "POOL|FEATURES|WATERPARK|CODES",
+    cats: {
+    POOL:{name:'Swimming Pools', icon:'🏊'},
+    FEATURES:{name:'Water Features & Fountains', icon:'⛲'},
+    WATERPARK:{name:'Water Parks & Slides', icon:'🎢'},
+    CODES:{name:'Codes & Standards', icon:'📖'},
+  },
+    imgQuery: {
+  1:'weir flow',2:'infinity pool',3:'swimming pool filtration',4:'pool pump strainer basket',5:'UV pool disinfection',6:'pool chemical dosing system',
+  7:'swimming pool skimmer',8:'plunge pool chiller',
+  9:'decorative fountain',10:'splash pad water feature',11:'fountain surge tank',12:'backflow preventer',
+  13:'water slide flume',14:'water slide runout pool',15:'water park pool',16:'wave pool',17:'water slide safety',
+  18:'public swimming pool',19:'pool drain cover',20:'recreational water quality',21:'pool water pH testing',
+  },
+    content: [
+{id:1,cat:'POOL',type:'mcq',q:'In infinity pool design, what is the Francis Weir Formula used to calculate?',opts:['Pump total dynamic head','The flow rate of water spilling over the weir edge, based on weir length and head of water over it','Chemical dosing rate','Pipe insulation thickness'],a:1,e:'The Francis Weir Formula (Q = 1.84 x L x H^1.5, SI form, with weir coefficient adjustments) relates flow rate over a weir to its effective length and the head of water over the crest — used to size infinity edge flow and downstream catch basin/balancing tank capacity.'},
+{id:2,cat:'POOL',type:'flash',f:'What is the role of a balancing tank in an infinity edge pool system?',b:'It collects water that continuously spills over the infinity edge into the catch basin, providing a reservoir the circulation pump draws from — buffering volume changes from bather displacement and evaporation so the visual effect and pump supply stay stable.'},
+{id:3,cat:'POOL',type:'mcq',q:'What does "turnover rate" mean in swimming pool circulation design?',opts:['How often the pool water is fully replaced with fresh water','The time taken for the circulation system to filter/treat a volume of water equal to the total pool volume once','The rotational speed of the pump impeller','How often chemicals are dosed'],a:1,e:'Turnover rate/period is the time for the full pool volume to pass through filtration and treatment once (commercial pools often target 4-6 hours). It drives required circulation flow rate: Flow = Pool Volume / Turnover Period.'},
+{id:4,cat:'POOL',type:'flash',f:'What is the purpose of a hair and lint strainer before a pool circulation pump?',b:'It catches hair, leaves, and debris before they reach the pump impeller, preventing clogging, impeller damage, and loss of circulation efficiency — positioned upstream of the pump, easily accessible for regular cleaning.'},
+{id:5,cat:'POOL',type:'mcq',q:'Why might UV disinfection be used alongside (not instead of) chlorine in a swimming pool?',opts:['UV replaces the need for any filtration','UV inactivates chlorine-resistant pathogens (like Cryptosporidium) and reduces chloramine formation, while chlorine still provides a residual disinfectant in the water','UV is only used for aesthetic clarity','UV eliminates the need for circulation pumps'],a:1,e:'Chlorine alone struggles against certain resistant organisms and produces combined chlorine (chloramines) with organic load from bathers. UV provides an additional disinfection barrier and helps break down chloramines, while chlorine maintains a protective residual — commonly paired, not substituted.'},
+{id:6,cat:'POOL',type:'flash',f:'Why is chemical dosing (chlorine/pH) typically injected after the filter, not before?',b:'Dosing after filtration ensures the disinfectant/pH-adjusting chemical isn\'t partially consumed or filtered out before reaching the pool, and avoids potential chemical reactions with debris/organics fouling the filter media.'},
+{id:7,cat:'POOL',type:'mcq',q:'Why do commercial/public pools require adequate surface skimming (skimmers or perimeter overflow gutter)?',opts:['Purely for aesthetic water movement','To continuously remove floating oils, debris, and surface contaminants from bather load before they concentrate or sink, keeping the water surface clean and safe','Surface skimming has no water quality function','Only decorative pools need surface skimming'],a:1,e:'Bather-introduced oils and floating debris concentrate at the surface. Skimmers or perimeter gutters continuously draw off this surface layer to the filtration system, which is a core water quality function in public pool design.'},
+{id:8,cat:'POOL',type:'flash',f:'Why are plunge pool chillers typically sized differently from standard pool heaters?',b:'A plunge pool chiller must reject significant heat to reach and maintain a cold target temperature against ambient heat gain, requiring refrigeration-based cooling capacity sizing rather than the heating capacity sizing used for standard heated pools/spas.'},
+{id:9,cat:'FEATURES',type:'mcq',q:'Why do decorative fountains/water features often need separate filtration/treatment from a main swimming pool system?',opts:['They never need any treatment','Different water volumes, exposure conditions (open to debris/wildlife), and aesthetic clarity requirements often call for a dedicated, appropriately sized circulation and treatment system','Fountains are always connected directly to the main pool filtration','Water features have no water quality concerns'],a:1,e:'Fountains and features often have different volumes, higher exposure to airborne debris and evaporation, and specific clarity/aesthetic demands — making a dedicated, correctly sized treatment system more practical than sharing an unrelated pool system.'},
+{id:10,cat:'FEATURES',type:'flash',f:'What is a "dry deck" water feature or splash pad, and how does its water handling differ from a standing pool?',b:'Water sprays or jets from deck-level nozzles with no standing body of water — water drains immediately to a buffer/collection tank, is treated, and recirculated, rather than being stored as a standing pool. This reduces standing-water safety/hygiene concerns, especially relevant for children\'s play areas.'},
+{id:11,cat:'FEATURES',type:'mcq',q:'What is the purpose of a surge tank in a fountain or water feature system?',opts:['To generate the fountain jets directly','To accommodate the temporary rise and fall in water level caused by jets, sprays, or wave action without overflowing or starving the pump','To disinfect the water','To heat the water'],a:1,e:'Dynamic water features cause the visible water level to fluctuate as water is thrown into the air or displaced by wave action. A surge tank buffers this fluctuation, protecting the pump from running dry and preventing uncontrolled overflow.'},
+{id:12,cat:'FEATURES',type:'flash',f:'Why is a check valve/backflow preventer important where a water feature draws from or discharges near a potable supply?',b:'It prevents contaminated feature water (with treatment chemicals, debris, or stagnant water) from being siphoned back into the potable water system during a pressure drop — the same cross-connection control principle used for irrigation systems.'},
+{id:13,cat:'WATERPARK',type:'mcq',q:'Why do water slides require a specific "flume" flow rate design?',opts:['Flow rate is arbitrary and not really specified','A continuous water film is needed along the slide surface for rider lubrication and safety, sized per the manufacturer\'s specified minimum flow rate for that flume','Slides do not use flowing water at all','Higher flow always means a faster, more exciting ride with no safety implication'],a:1,e:'Insufficient water film increases friction and rider injury risk (skin abrasion, unpredictable speed); manufacturers specify minimum flow rates per flume that must be met by the pump/circulation design.'},
+{id:14,cat:'WATERPARK',type:'flash',f:'What is a "run-out lane/pool" at the base of a water slide designed for?',b:'A dedicated deceleration zone (a shallow lane or splash pool) that safely dissipates the rider\'s speed before they reach the main pool or exit point, preventing collisions and injury from riders exiting the slide at speed.'},
+{id:15,cat:'WATERPARK',type:'mcq',q:'Why do water parks typically need higher turnover rates and stronger disinfection residuals than standard swimming pools?',opts:['Water parks are exempt from disinfection requirements','Much higher bather density/load per unit area introduces contaminants faster, requiring more aggressive treatment to maintain safe water quality','Water park pools use a fundamentally different disinfectant type entirely','Turnover rate has no relationship to bather load'],a:1,e:'High-throughput water park attractions see far more bathers per unit pool volume than a standard pool, introducing organic/chemical contamination faster — driving the need for higher circulation turnover and stronger residual disinfection to keep pace.'},
+{id:16,cat:'WATERPARK',type:'flash',f:'What is a wave pool surge/compensation tank used for?',b:'It accommodates the very large, rapid water displacement caused by wave generation — without it, wave action would cause uncontrolled overflow or expose the pump to run-dry conditions at the trough of each wave cycle.'},
+{id:17,cat:'WATERPARK',type:'code',standard:'ASTM F2376 (and similar)',f:'What do water slide/attraction safety design standards like ASTM F2376 govern?',b:'They set safety design requirements for water slides and similar attractions — covering flume geometry, flow rate, run-out design, and structural/operational safety criteria that manufacturers and designers must meet.'},
+{id:18,cat:'CODES',type:'code',standard:'ANSI/APSP/ICC',f:'What does the ANSI/APSP/ICC standard family govern for public pools?',b:'It is a widely referenced American National Standard for public swimming pools, covering circulation system design, filtration, safety barriers, and other requirements for commercial/public pool installations.'},
+{id:19,cat:'CODES',type:'flash',f:'What does the VGB Act (Virginia Graeme Baker Pool and Spa Safety Act) require regarding drain covers?',b:'It requires anti-entrapment drain covers on pool and spa suction outlets to prevent the hazard of a swimmer being trapped by suction — a critical safety requirement following documented entrapment incidents.'},
+{id:20,cat:'CODES',type:'code',standard:'WHO Recreational Water Guidelines',f:'What do WHO Guidelines for Safe Recreational Water Environments provide?',b:'Internationally referenced benchmark parameters for pool/recreational water quality — covering microbiological safety, disinfectant residual ranges, and pH — often adapted into local health authority pool codes.'},
+{id:21,cat:'CODES',type:'mcq',q:'Why do local health authority pool codes typically specify both a free chlorine residual range and a pH range together, rather than either alone?',opts:['pH has no effect on chlorine performance','Chlorine\'s disinfection effectiveness is strongly pH-dependent — too high a pH reduces available free chlorine\'s killing power even if the chlorine dose itself is adequate','Free chlorine residual is irrelevant if pH is controlled','Codes specify pH only for bather comfort, unrelated to disinfection'],a:1,e:'Free chlorine exists in water partly as hypochlorous acid (the effective disinfecting form) and partly as the much weaker hypochlorite ion, with the balance strongly pH-dependent. Even an adequate chlorine dose underperforms at high pH, so both parameters must be controlled together.'},
+  ]
+  }
+};
+const DISC_ORDER = ["fire", "plumb", "acmv", "steam", "wtreat", "pool"];
+function CD(){ return DISCIPLINES[STATE.discipline]; }
+
+const ITEMS_PER_DAY = 3;
+const DEEP_DIVE_BATCH_SIZE = 4;
+const EPOCH = new Date('2025-01-01T00:00:00Z').getTime();
+
+/* ================= STATE / STORAGE ================= */
+let STATE = {
+  screen: 'launcher', // 'launcher' | 'app'
+  discipline: null, // current discipline key when screen==='app'
+  progress: null, // {answered:{id:{result,count}}, streak:{current,longest,lastDate}, history:{date:{done,score,total}}}
+  view: 'today',
+  sessionQueue: [],
+  sessionIdx: 0,
+  sessionAnswers: [], // {id, correct}
+  exploreCat: null,
+  deepDiveCache: {}, // per-discipline: null=not started, 'loading', 'timeout', 'error', or an array of freshly generated items for today
+};
+function getDeepDive(){ return STATE.deepDiveCache[STATE.discipline]; }
+function setDeepDive(v){ STATE.deepDiveCache[STATE.discipline] = v; }
+function storageKey(name){ return CD().prefix + '-' + name; }
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function dayNumber(){ return Math.floor((Date.now() - EPOCH) / 86400000); }
+
+function seededShuffle(arr, seed){
+  const a = arr.slice();
+  let s = seed;
+  for(let i=a.length-1;i>0;i--){
+    s = (s * 9301 + 49297) % 233280;
+    const j = Math.floor((s/233280)*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+const SHUFFLED_DECK_CACHE = {};
+function getShuffledDeck(){
+  const key = STATE.discipline;
+  if(!SHUFFLED_DECK_CACHE[key]) SHUFFLED_DECK_CACHE[key] = seededShuffle(CD().content, 42);
+  return SHUFFLED_DECK_CACHE[key];
+}
+
+async function loadProgress(){
+  try{
+    const res = await window.storage.get(storageKey('progress-v1'));
+    STATE.progress = res ? JSON.parse(res.value) : defaultProgress();
+  }catch(e){
+    STATE.progress = defaultProgress();
+  }
+}
+function defaultProgress(){
+  return { answered:{}, streak:{current:0, longest:0, lastDate:null}, history:{}, totalAnswered:0, totalCorrect:0 };
+}
+async function saveProgress(){
+  try{ await window.storage.set(storageKey('progress-v1'), JSON.stringify(STATE.progress)); }catch(e){ console.error('save failed', e); }
+}
+
+/* ---- reference images (live lookup, cached globally across all disciplines) ---- */
+let IMG_CACHE = {};
+async function loadImageCache(){
+  try{ const r = await window.storage.get('app-img-cache-v1'); IMG_CACHE = r ? JSON.parse(r.value) : {}; }
+  catch(e){ IMG_CACHE = {}; }
+}
+let _imgSaveTimer = null;
+function saveImageCacheDebounced(){
+  clearTimeout(_imgSaveTimer);
+  _imgSaveTimer = setTimeout(async ()=>{
+    try{ await window.storage.set('app-img-cache-v1', JSON.stringify(IMG_CACHE)); }catch(e){}
+  }, 800);
+}
+function escapeAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+async function fetchWikiImage(query){
+  try{
+    const r1 = await fetch(`https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=600&format=json&origin=*`);
+    const d1 = await r1.json();
+    const pages1 = d1 && d1.query && d1.query.pages;
+    if(pages1){
+      const p = Object.values(pages1)[0];
+      if(p && p.thumbnail && p.thumbnail.source) return p.thumbnail.source;
+    }
+  }catch(e){}
+  try{
+    const r2 = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=1&prop=imageinfo&iiprop=url&iiurlwidth=600&format=json&origin=*`);
+    const d2 = await r2.json();
+    const pages2 = d2 && d2.query && d2.query.pages;
+    if(pages2){
+      const p = Object.values(pages2)[0];
+      if(p && p.imageinfo && p.imageinfo[0] && p.imageinfo[0].thumburl) return p.imageinfo[0].thumburl;
+    }
+  }catch(e){}
+  return null;
+}
+async function getImage(query){
+  if(Object.prototype.hasOwnProperty.call(IMG_CACHE, query)) return IMG_CACHE[query];
+  const url = await fetchWikiImage(query);
+  IMG_CACHE[query] = url;
+  saveImageCacheDebounced();
+  return url;
+}
+function figureSlot(id, query){
+  if(!query) return '';
+  return `<div class="figure" data-img-query="${escapeAttr(query)}"><div class="fig-loading">Loading reference image…</div></div>`;
+}
+function hydrateImages(){
+  document.querySelectorAll('.figure[data-img-query]').forEach((node)=>{
+    const q = node.getAttribute('data-img-query');
+    loadFigureImage(node, q);
+  });
+}
+async function loadFigureImage(node, q){
+  node.innerHTML = `<div class="fig-loading">Loading reference image…</div>`;
+  let url = null;
+  try{ url = await getImage(q); }catch(e){ url = null; }
+  if(!node.isConnected) return;
+  if(url){
+    node.innerHTML = '';
+    const img = document.createElement('img');
+    img.alt = q;
+    img.loading = 'lazy';
+    img.onerror = ()=>{ delete IMG_CACHE[q]; saveImageCacheDebounced(); showFigureFailed(node, q); };
+    img.src = url;
+    const cap = document.createElement('div');
+    cap.className = 'fig-cap';
+    cap.textContent = 'FIG — ' + q;
+    node.appendChild(img);
+    node.appendChild(cap);
+  } else {
+    showFigureFailed(node, q);
+  }
+}
+function showFigureFailed(node, q){
+  node.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'fig-loading fig-retry';
+  wrap.textContent = 'Reference image unavailable — tap to retry';
+  wrap.onclick = ()=>{ delete IMG_CACHE[q]; saveImageCacheDebounced(); loadFigureImage(node, q); };
+  node.appendChild(wrap);
+}
+
+/* ---- daily deep dive (live Claude call, refreshes once per calendar day, per discipline) ---- */
+function storageKeyFor(disc, name){ return DISCIPLINES[disc].prefix + '-' + name; }
+let DD_REQUEST_ID = 0;
+async function loadDeepDive(force){
+  const disc = STATE.discipline;
+  const discCfg = DISCIPLINES[disc];
+  const myId = ++DD_REQUEST_ID;
+  const key = storageKeyFor(disc, 'deepdive-' + todayStr());
+
+  if(!force){
+    try{
+      const cached = await window.storage.get(key);
+      if(cached && cached.value){ STATE.deepDiveCache[disc] = JSON.parse(cached.value); if(STATE.discipline===disc) render(); return; }
+    }catch(e){}
+  } else {
+    try{ await window.storage.delete(key); }catch(e){}
+  }
+
+  STATE.deepDiveCache[disc] = 'loading';
+  if(STATE.discipline===disc) render();
+
+  const timeoutId = setTimeout(()=>{
+    if(myId === DD_REQUEST_ID && STATE.deepDiveCache[disc] === 'loading'){
+      STATE.deepDiveCache[disc] = 'timeout';
+      if(STATE.discipline===disc) render();
+    }
+  }, 20000);
+
+  let recentTopics = [];
+  try{
+    const r = await window.storage.get(storageKeyFor(disc, 'recent-topics'));
+    if(r && r.value) recentTopics = JSON.parse(r.value);
+  }catch(e){}
+
+  const prompt = `${discCfg.ddIntro}
+Generate ${DEEP_DIVE_BATCH_SIZE} fresh "daily deep dive" micro-lessons for today, each on a genuinely different topic within scope. Go a bit beyond basics -- something a practicing engineer would find useful or interesting, not a dictionary definition. Vary the sub-topic and category across the ${DEEP_DIVE_BATCH_SIZE} items so today's set feels varied, not repetitive.
+Avoid repeating any of these recently covered topics: ${recentTopics.join(', ') || 'none yet'}.
+Respond with ONLY a raw JSON array of exactly ${DEEP_DIVE_BATCH_SIZE} objects, no markdown fences, no preamble, each shaped exactly like this:
+{"category":"${discCfg.ddEnum}","topic":"short topic name (3-6 words)","explanation":"3-4 sentences, practical and specific","imageQuery":"2-4 word search term for a real photo or diagram of this concept findable on Wikipedia","question":"a quiz question testing the explanation just given","options":["option A","option B","option C","option D"],"correct":0,"answerExplain":"1-2 sentences on why the correct answer is right"}`;
+
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 2200,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    const data = await response.json();
+    let text = (data.content || []).map(b => b.text || '').join('');
+    text = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(text);
+    const items = Array.isArray(parsed) ? parsed : [parsed];
+    if(myId !== DD_REQUEST_ID) return; // a newer request superseded this one
+    clearTimeout(timeoutId);
+    STATE.deepDiveCache[disc] = items;
+    await window.storage.set(key, JSON.stringify(items));
+    const newTopics = items.map(it => it.topic).filter(Boolean);
+    recentTopics = recentTopics.concat(newTopics);
+    if(recentTopics.length > 60) recentTopics = recentTopics.slice(-60);
+    await window.storage.set(storageKeyFor(disc, 'recent-topics'), JSON.stringify(recentTopics));
+  }catch(e){
+    clearTimeout(timeoutId);
+    if(myId === DD_REQUEST_ID) STATE.deepDiveCache[disc] = 'error';
+  }
+  if(STATE.discipline===disc) render();
+}
+window.retryDeepDive = function(){
+  loadDeepDive(true);
+};
+
+window.answerDeepDive = function(idx, choice){
+  const items = getDeepDive();
+  if(!Array.isArray(items) || !items[idx]) return;
+  const dd = items[idx];
+  const correct = choice === dd.correct;
+  const optsDiv = document.getElementById('opts-dd-'+idx);
+  Array.from(optsDiv.children).forEach((btn,i)=>{
+    btn.onclick = null;
+    if(i === dd.correct) btn.classList.add('correct');
+    else if(i === choice) btn.classList.add('wrong');
+    else btn.classList.add('dim');
+  });
+  document.getElementById('explain-dd-'+idx).innerHTML = `<div class="explain"><b>${correct?'Correct.':'Not quite.'}</b> ${dd.answerExplain}</div>`;
+  recordAnswer('dd-'+todayStr()+'-'+idx, correct);
+  saveProgress();
+};
+
+function getDailySession(){
+  const deck = getShuffledDeck();
+  const n = deck.length;
+  const dn = dayNumber();
+  const isReviewDay = (new Date().getDay() === 6); // Saturday = review day
+  if(isReviewDay){
+    const wrongIds = Object.entries(STATE.progress.answered).filter(([id,v])=>v.lastResult===false).map(([id])=>parseInt(id));
+    if(wrongIds.length >= 3){
+      const items = CD().content.filter(c=>wrongIds.includes(c.id)).slice(0, ITEMS_PER_DAY);
+      if(items.length>0) return items;
+    }
+  }
+  const start = (dn * ITEMS_PER_DAY) % n;
+  const items = [];
+  for(let i=0;i<ITEMS_PER_DAY;i++){
+    items.push(deck[(start+i)%n]);
+  }
+  return items;
+}
+
+function isTodayDone(){
+  const h = STATE.progress.history[todayStr()];
+  return h && h.done;
+}
+
+function recordAnswer(id, correct){
+  const a = STATE.progress.answered[id] || {correctCount:0, wrongCount:0};
+  if(correct) a.correctCount++; else a.wrongCount++;
+  a.lastResult = correct;
+  STATE.progress.answered[id] = a;
+  STATE.progress.totalAnswered = (STATE.progress.totalAnswered||0)+1;
+  if(correct) STATE.progress.totalCorrect = (STATE.progress.totalCorrect||0)+1;
+}
+
+function completeSession(score, total){
+  const t = todayStr();
+  STATE.progress.history[t] = {done:true, score, total};
+  const streak = STATE.progress.streak;
+  const y = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  if(streak.lastDate === y || streak.lastDate === t){
+    if(streak.lastDate !== t) streak.current += 1;
+  } else {
+    streak.current = 1;
+  }
+  streak.lastDate = t;
+  streak.longest = Math.max(streak.longest, streak.current);
+  saveProgress();
+}
+
+/* ================= RENDER ================= */
+function el(html){ const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
+
+function renderTitleBlock(){
+  const dn = dayNumber();
+  const streak = STATE.progress.streak.current;
+  const dateStr = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  return `
+  <div class="titleblock">
+    <div class="crosshair ch-tl"></div><div class="crosshair ch-tr"></div>
+    <div class="tb-title">
+      <h1><button class="back-chip" onclick="goToLauncher()">⌂</button> ${CD().icon} ${CD().short.toUpperCase()} DAILY</h1>
+      <span class="sub">SHEET ${String(dn%9999).padStart(4,'0')}</span>
+    </div>
+    <div class="tb-row">
+      <div class="tb-cell"><div class="tb-label">Date</div><div class="tb-value">${dateStr}</div></div>
+      <div class="tb-cell"><div class="tb-label">Streak</div><div class="tb-value accent">${streak} 🔥</div></div>
+      <div class="tb-cell"><div class="tb-label">Answered</div><div class="tb-value">${STATE.progress.totalAnswered||0}</div></div>
+    </div>
+  </div>`;
+}
+
+function renderTabs(){
+  return `
+  <div class="tabs">
+    <button class="tab ${STATE.view==='today'?'active':''}" onclick="setView('today')">TODAY</button>
+    <button class="tab ${STATE.view==='explore'?'active':''}" onclick="setView('explore')">EXPLORE</button>
+    <button class="tab ${STATE.view==='progress'?'active':''}" onclick="setView('progress')">PROGRESS</button>
+  </div>`;
+}
+
+function renderDeepDiveCard(){
+  const dd = getDeepDive();
+  if(dd === null || dd === undefined){
+    return `<div class="section-label"><span class="dd-badge"></span>Today's deep dive — fresh from the web</div>
+    <div class="card"><div class="fig-loading">Connecting…</div></div>`;
+  }
+  if(dd === 'loading'){
+    return `<div class="section-label"><span class="dd-badge"></span>Today's deep dive — fresh from the web</div>
+    <div class="card"><div class="fig-loading">Pulling ${DEEP_DIVE_BATCH_SIZE} new topics for today…</div></div>`;
+  }
+  if(dd === 'timeout' || dd === 'error'){
+    const msg = dd === 'timeout'
+      ? "This is taking longer than expected — the connection may be slow or blocked."
+      : "Couldn't reach the network to pull today's fresh topics.";
+    return `<div class="section-label">Today's deep dive</div>
+    <div class="card">
+      <p class="body">${msg} Your curated session below still works fully offline.</p>
+      <button class="btn ghost" onclick="retryDeepDive()">↻ TRY AGAIN</button>
+    </div>`;
+  }
+  const items = dd;
+  const cards = items.map((it, idx) => {
+    const catInfo = CD().cats[it.category] || {name: it.category, icon:'📘'};
+    return `
+    <div class="card">
+      <span class="cat-tag">${catInfo.icon} ${catInfo.name}</span><span class="type-tag">Web-refreshed</span>
+      <h2>${it.topic}</h2>
+      ${figureSlot('dd'+idx, it.imageQuery)}
+      <p class="body">${it.explanation}</p>
+      <div style="border-top:1px solid var(--line); margin:14px 0; padding-top:14px;">
+        <div id="opts-dd-${idx}">
+          ${it.options.map((o,i)=>`<button class="opt" onclick="answerDeepDive(${idx},${i})">${o}</button>`).join('')}
+        </div>
+        <div id="explain-dd-${idx}"></div>
+      </div>
+    </div>`;
+  }).join('');
+  return `
+  <div class="section-label"><span class="dd-badge"></span>Today's deep dive — ${items.length} fresh from the web<button class="refresh-btn" onclick="retryDeepDive()">↻ Refresh</button></div>
+  ${cards}`;
+}
+
+function renderTodayView(){
+  const deepDiveHtml = renderDeepDiveCard();
+  if(isTodayDone() && STATE.sessionIdx === 0 && STATE.sessionAnswers.length===0){
+    const h = STATE.progress.history[todayStr()];
+    return `
+    ${deepDiveHtml}
+    <div class="card done-banner">
+      <div class="big">✅</div>
+      <h3>Today's session complete</h3>
+      <p>Score: ${h.score}/${h.total}. Come back tomorrow for the next set — or head to Explore to browse any topic freely.</p>
+    </div>
+    <button class="btn ghost" onclick="setView('explore')">BROWSE TOPICS</button>`;
+  }
+
+  if(STATE.sessionQueue.length === 0){
+    STATE.sessionQueue = getDailySession();
+    STATE.sessionIdx = 0;
+    STATE.sessionAnswers = [];
+  }
+
+  if(STATE.sessionIdx >= STATE.sessionQueue.length){
+    const correct = STATE.sessionAnswers.filter(a=>a.correct!==false).length;
+    const total = STATE.sessionQueue.length;
+    completeSession(correct, total);
+    return `
+    ${deepDiveHtml}
+    <div class="card done-banner">
+      <div class="big">🎯</div>
+      <h3>Session complete</h3>
+      <p>You scored ${correct}/${total} today. Streak is now ${STATE.progress.streak.current} day(s). See you tomorrow.</p>
+    </div>
+    <button class="btn ghost" onclick="STATE.sessionQueue=[]; STATE.sessionAnswers=[]; render();">BACK TO TODAY</button>`;
+  }
+
+  const item = STATE.sessionQueue[STATE.sessionIdx];
+  const pct = Math.round((STATE.sessionIdx/STATE.sessionQueue.length)*100);
+  let body = '';
+  if(item.type==='mcq') body = renderMcq(item, 'session');
+  else if(item.type==='flash' || item.type==='code') body = renderFlash(item, 'session');
+  else if(item.type==='lesson') body = renderLesson(item, 'session');
+
+  return `
+  ${STATE.sessionIdx===0 ? deepDiveHtml : ''}
+  <div class="section-label">Today's session — ${STATE.sessionIdx+1} of ${STATE.sessionQueue.length}</div>
+  <div class="progressbar"><div class="progressbar-fill" style="width:${pct}%"></div></div>
+  ${body}`;
+}
+
+function renderMcq(item, mode){
+  const catInfo = CD().cats[item.cat];
+  return `
+  <div class="card" id="mcq-${item.id}">
+    <span class="cat-tag">${catInfo.icon} ${catInfo.name}</span><span class="type-tag">Quiz</span>
+    <h2>${item.q}</h2>
+    ${figureSlot(item.id, CD().imgQuery[item.id])}
+    <div id="opts-${item.id}">
+      ${item.opts.map((o,i)=>`<button class="opt" onclick="answerMcq(${item.id},${i},'${mode}')">${o}</button>`).join('')}
+    </div>
+    <div id="explain-${item.id}"></div>
+  </div>`;
+}
+
+function renderFlash(item, mode){
+  const catInfo = CD().cats[item.cat];
+  const isCode = item.type === 'code';
+  const tagLabel = isCode ? ('📖 ' + (item.standard || 'Code Ref')) : 'Flashcard';
+  return `
+  <div class="card">
+    <span class="cat-tag">${catInfo.icon} ${catInfo.name}</span><span class="type-tag${isCode?' code-tag':''}">${tagLabel}</span>
+    <div class="flashwrap">
+      <div class="flashcard" id="fc-${item.id}" onclick="flipCard(${item.id})">
+        <div class="fcface"><div class="txt">${item.f}</div><div class="hint">Tap to flip</div></div>
+        <div class="fcface back"><div class="txt">${item.b}</div><div class="hint">Tap to flip back</div></div>
+      </div>
+    </div>
+    ${figureSlot(item.id, CD().imgQuery[item.id])}
+    ${mode==='session' ? `
+    <div class="rate-row">
+      <button class="rate-btn hard" onclick="answerFlash(${item.id},false,'${mode}')">Still shaky</button>
+      <button class="rate-btn easy" onclick="answerFlash(${item.id},true,'${mode}')">Got it</button>
+    </div>` : ''}
+  </div>`;
+}
+
+function renderLesson(item, mode){
+  const catInfo = CD().cats[item.cat];
+  return `
+  <div class="card">
+    <span class="cat-tag">${catInfo.icon} ${catInfo.name}</span><span class="type-tag">Lesson</span>
+    <h2>${item.ti}</h2>
+    ${figureSlot(item.id, CD().imgQuery[item.id])}
+    <p class="body">${item.bd}</p>
+    <div style="border-top:1px solid var(--line); margin:14px 0; padding-top:14px;">
+      <div style="font-family:var(--mono); font-size:10px; letter-spacing:0.08em; color:var(--ink-faint); text-transform:uppercase; margin-bottom:10px;">Check your understanding</div>
+      <div id="opts-${item.id}">
+        ${item.opts.map((o,i)=>`<button class="opt" onclick="answerMcq(${item.id},${i},'${mode}')">${o}</button>`).join('')}
+      </div>
+      <div id="explain-${item.id}"></div>
+    </div>
+  </div>`;
+}
+
+window.flipCard = function(id){
+  document.getElementById('fc-'+id).classList.toggle('flip');
+};
+
+window.answerMcq = function(id, choice, mode){
+  const item = CD().content.find(c=>c.id===id);
+  const correct = choice === item.a;
+  const optsDiv = document.getElementById('opts-'+id);
+  Array.from(optsDiv.children).forEach((btn,i)=>{
+    btn.onclick = null;
+    if(i===item.a) btn.classList.add('correct');
+    else if(i===choice) btn.classList.add('wrong');
+    else btn.classList.add('dim');
+  });
+  document.getElementById('explain-'+id).innerHTML = `<div class="explain"><b>${correct?'Correct.':'Not quite.'}</b> ${item.e}</div>`;
+  recordAnswer(id, correct);
+  saveProgress();
+  if(mode==='session'){
+    STATE.sessionAnswers.push({id, correct});
+    injectNextButton();
+  }
+};
+
+window.answerFlash = function(id, gotIt, mode){
+  recordAnswer(id, gotIt);
+  saveProgress();
+  if(mode==='session'){
+    STATE.sessionAnswers.push({id, correct:gotIt});
+    render();
+    setTimeout(()=>{ STATE.sessionIdx++; render(); }, 150);
+  }
+};
+
+function injectNextButton(){
+  const view = document.querySelector('.view');
+  if(view.querySelector('.next-btn')) return;
+  const btn = document.createElement('button');
+  btn.className='btn next-btn';
+  btn.textContent = STATE.sessionIdx < STATE.sessionQueue.length-1 ? 'NEXT →' : 'FINISH SESSION';
+  btn.onclick = ()=>{ STATE.sessionIdx++; render(); };
+  view.appendChild(btn);
+}
+
+function renderExploreView(){
+  if(!STATE.exploreCat){
+    const cards = Object.entries(CD().cats).map(([key,c])=>{
+      const cnt = CD().content.filter(i=>i.cat===key).length;
+      return `<button class="catcard" onclick="openCat('${key}')">
+        <span class="ic">${c.icon}</span>
+        <div class="nm">${c.name}</div>
+        <div class="cnt">${cnt} items</div>
+      </button>`;
+    }).join('');
+    return `<div class="section-label">Browse by topic</div><div class="catgrid">${cards}</div>`;
+  }
+  const items = CD().content.filter(i=>i.cat===STATE.exploreCat);
+  const html = items.map(item=>{
+    if(item.type==='mcq') return renderMcq(item,'explore');
+    if(item.type==='flash' || item.type==='code') return renderFlash(item,'explore');
+    if(item.type==='lesson') return renderLesson(item,'explore');
+  }).join('');
+  return `
+  <button class="backbtn" onclick="STATE.exploreCat=null; render();">← All topics</button>
+  <div class="section-label">${CD().cats[STATE.exploreCat].icon} ${CD().cats[STATE.exploreCat].name}</div>
+  ${html}`;
+}
+window.openCat = function(key){ STATE.exploreCat = key; render(); };
+
+function renderProgressView(){
+  const p = STATE.progress;
+  const total = p.totalAnswered||0;
+  const correct = p.totalCorrect||0;
+  const acc = total>0 ? Math.round((correct/total)*100) : 0;
+  const daysActive = Object.values(p.history).filter(h=>h.done).length;
+
+  const catRows = Object.entries(CD().cats).map(([key,c])=>{
+    const catItems = CD().content.filter(i=>i.cat===key).map(i=>i.id);
+    let seen=0, right=0;
+    catItems.forEach(id=>{
+      const a = p.answered[id];
+      if(a){ seen++; if((a.correctCount||0) > (a.wrongCount||0)) right++; }
+    });
+    const pct = catItems.length>0 ? Math.round((seen/catItems.length)*100) : 0;
+    return `
+    <div class="catbar-row">
+      <div class="catbar-head"><span>${c.icon} ${c.name}</span><span>${seen}/${catItems.length} seen</span></div>
+      <div class="catbar-track"><div class="catbar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+
+  // last 28 days calendar
+  const cells = [];
+  for(let i=27;i>=0;i--){
+    const d = new Date(Date.now()-i*86400000).toISOString().slice(0,10);
+    const done = p.history[d] && p.history[d].done;
+    const isToday = d===todayStr();
+    cells.push(`<div class="cal-cell ${done?'done':''} ${isToday?'today':''}"></div>`);
+  }
+
+  return `
+  <div class="section-label">Your progress</div>
+  <div class="statgrid">
+    <div class="statbox"><div class="n">${p.streak.current}</div><div class="l">Day streak</div></div>
+    <div class="statbox"><div class="n">${p.streak.longest}</div><div class="l">Longest streak</div></div>
+    <div class="statbox"><div class="n">${daysActive}</div><div class="l">Days active</div></div>
+    <div class="statbox"><div class="n">${acc}%</div><div class="l">Accuracy (${total} answered)</div></div>
+  </div>
+  <div class="section-label">Topic coverage</div>
+  ${catRows}
+  <div class="section-label">Last 28 days</div>
+  <div class="calendar">${cells.join('')}</div>
+  <p style="font-family:var(--mono); font-size:10px; color:var(--ink-faint); margin-top:10px; line-height:1.6;">Saturdays automatically pull in items you previously got wrong for spaced review.</p>
+  `;
+}
+
+function renderLauncher(){
+  const cards = DISC_ORDER.map(key => {
+    const d = DISCIPLINES[key];
+    return `<button class="disc-card" onclick="selectDiscipline('${key}')">
+      <span class="disc-ic">${d.icon}</span>
+      <div class="disc-nm">${d.name}</div>
+      <div class="disc-sub">${Object.keys(d.cats).length} topic areas</div>
+    </button>`;
+  }).join('');
+  return `
+  <div class="launcher-head">
+    <div class="crosshair ch-tl"></div><div class="crosshair ch-tr"></div>
+    <h1>MEP DAILY</h1>
+    <span class="sub">FIELD NOTES — CHOOSE A DISCIPLINE</span>
+  </div>
+  <div class="disc-grid">${cards}</div>`;
+}
+
+window.goToLauncher = function(){
+  STATE.screen = 'launcher';
+  STATE.discipline = null;
+  render();
+};
+
+window.selectDiscipline = async function(key){
+  STATE.discipline = key;
+  STATE.screen = 'app';
+  STATE.view = 'today';
+  STATE.sessionQueue = [];
+  STATE.sessionIdx = 0;
+  STATE.sessionAnswers = [];
+  STATE.exploreCat = null;
+  await loadProgress();
+  render();
+  loadDeepDive();
+  try{ await window.storage.set('app-last-discipline', key); }catch(e){}
+};
+
+function render(){
+  const app = document.getElementById('app');
+  if(STATE.screen === 'launcher'){
+    app.innerHTML = renderLauncher();
+    return;
+  }
+  let viewHtml = '';
+  if(STATE.view==='today') viewHtml = renderTodayView();
+  else if(STATE.view==='explore') viewHtml = renderExploreView();
+  else if(STATE.view==='progress') viewHtml = renderProgressView();
+
+  app.innerHTML = `
+    ${renderTitleBlock()}
+    <div class="view">${viewHtml}</div>
+    ${renderTabs()}
+  `;
+  hydrateImages();
+}
+
+window.setView = function(v){
+  STATE.view = v;
+  STATE.exploreCat = null;
+  render();
+};
+
+/* manifest.json is linked statically in <head> and served as a real file once hosted.
+   Registering a service worker here is what makes the app installable/packageable (PWABuilder/TWA). */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{ /* fine locally/without hosting; needed once deployed */ });
+}
+
+async function init(){
+  await loadImageCache();
+  let lastDisc = null;
+  try{
+    const r = await window.storage.get('app-last-discipline');
+    if(r && r.value && DISCIPLINES[r.value]) lastDisc = r.value;
+  }catch(e){}
+  if(lastDisc){
+    selectDiscipline(lastDisc);
+  } else {
+    render();
+  }
+}
+init();
+</script>
+</body>
+</html>
